@@ -1,4 +1,6 @@
-filePath = r""
+import sys
+
+filePath = sys.argv[0]
 file = open(filePath, 'r')
 lines = file.readlines()
 

@@ -1,6 +1,7 @@
 import re
+import sys
 
-filePath = r""
+filePath = sys.argv[0]
 file = open(filePath, 'r')
 lines = file.readlines()
 

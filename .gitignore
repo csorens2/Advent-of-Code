@@ -143,6 +143,9 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# launch config
+launch.json
+
 # Pyre type checker
 .pyre/
 
