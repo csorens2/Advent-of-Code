@@ -78,8 +78,6 @@ def GetHighestScenicScore(grid):
             score = GetScenicScore((y,x), grid)
             best_score = max(best_score, score)
     return best_score
-    
+
 part_2_solution = GetHighestScenicScore(tree_grid)
 print("Part 2 Solution: {}", part_2_solution)           
-
-test = 1
