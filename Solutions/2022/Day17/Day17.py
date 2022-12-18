@@ -84,3 +84,4 @@ def Part1(input_line, total_rocks):
 
 # 3067
 part_1_result = max(Part1(input_line, 2022))
+print("Part 1 Result: {}".format(part_1_result))
