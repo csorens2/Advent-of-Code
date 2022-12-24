@@ -62,7 +62,7 @@ def GetNextPos(grid_map, curr_pos, orientation):
 def ParseInput(lines):
     map_lines = []
     traversal_operations = []
-    traversal_regex = "(\d+|[a-zA-Z]+)"
+    traversal_regex = "(\d+|[a-zA-Z])"
     for line in lines:
         if line == "":
             continue
