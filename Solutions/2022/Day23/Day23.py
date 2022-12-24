@@ -1,25 +1,15 @@
 import sys
 import functools
 import copy
+import itertools
 
 class Elf:
     def __init__(self, point):
         self.Point = point
-    def SetTarget(self, point):
-        self.Target = point
-    def Move(self, space_is_open):
-        if space_is_open:
-            self.Point = self.Target
-        else:
-            pass
-
-def ParseInput(lines):
-    elf_set = set()
-    for (y, line) in enumerate(lines):
-        for (x, char) in enumerate(line):
-            if char == '#':
-                elf_set.add(Elf((y,x)))    
-    return elf_set
+        self.Target = None
+    def Move(self):
+        self.Point = self.Target
+        self.Target = None
 
 def UpPair():
     check = lambda point, set: (
@@ -60,34 +50,30 @@ def IsSolo(point, elf_set):
         DownPair(),
         LeftPair()
     ]
-    pair_checks = map(lambda x: x[0], pairs)
-    return functools.reduce(lambda acc, next_func: acc and next_func(point, elf_set), pair_checks, True)
+    checks = map(lambda x: x[0], pairs)
+    for check in checks:
+        if not check(point, elf_set):
+            return False
+    return True
 
-file_path = sys.argv[1]
-file = open(file_path, 'r')
-input_lines = file.read().splitlines()
-elf_set = ParseInput(input_lines)
-
-def Part1(elf_set: set[Elf], rounds):
+def SimulateElves(elf_set: set[Elf], round_iter):
     target_dict = {}
+    first_no_movement_round = -1
     func_list = [
         UpPair(),
         DownPair(),
         LeftPair(),
         RightPair()
     ]
-    for _ in range(0, rounds):
+    for round in round_iter:
         del target_dict
         target_dict = {}
         elf_set_points = set(map(lambda x: x.Point, elf_set))
         for elf in elf_set:
             elf_point = elf.Point
             if IsSolo(elf_point, elf_set_points):
-                elf.Target = elf_point
-                target_dict[elf.Target] = True
                 continue
-            for (i, funcs) in enumerate(func_list):
-                (check, move) = funcs
+            for (check, move) in func_list:
                 if check(elf.Point, elf_set_points):
                     elf.Target = move(elf.Point)
                     if elf.Target in target_dict:
@@ -95,33 +81,44 @@ def Part1(elf_set: set[Elf], rounds):
                     else:
                         target_dict[elf.Target] = True
                     break
-                if i == 3:
-                    elf.Target = elf_point
-                    target_dict[elf.Target] = True
+        no_movement = True
         for elf in elf_set:
-            elf.Move(target_dict[elf.Target])
+            if elf.Target == None:
+                continue
+            if target_dict[elf.Target]:
+                no_movement = False
+                elf.Move()
+            elf.Target = None
+        if no_movement and first_no_movement_round == -1:
+            first_no_movement_round = round
+            break
         func_list.append(func_list[0])
         func_list.pop(0)
-        pass
     x_min = functools.reduce(lambda acc, next: min(acc, next.Point[1]), elf_set, sys.maxsize)
     x_max = functools.reduce(lambda acc, next: max(acc, next.Point[1]), elf_set, -sys.maxsize)
     y_min = functools.reduce(lambda acc, next: min(acc, next.Point[0]), elf_set, sys.maxsize)
     y_max = functools.reduce(lambda acc, next: max(acc, next.Point[0]), elf_set, -sys.maxsize)
     total_spaces = (abs(x_max - x_min)+1) * (abs(y_max - y_min)+1)
     open_spaces = total_spaces - len(elf_set)
-    pass
+    return (open_spaces, first_no_movement_round)
 
+def ParseInput(lines):
+    elf_set = set()
+    for (y, line) in enumerate(lines):
+        for (x, char) in enumerate(line):
+            if char == '#':
+                elf_set.add(Elf((y,x)))    
     return elf_set
 
-def PrintElfSet(elf_set):
-    elf_set_map = set(map(lambda x: x.Point, elf_set))
-    for y in range(0,13):
-        for x in range(0,16):
-            if (y,x) in elf_set_map:
-                print("#", end='')
-            else:
-                print(".", end='')
-        print()    
+file_path = sys.argv[1]
+file = open(file_path, 'r')
+input_lines = file.read().splitlines()
+elf_set = ParseInput(input_lines)   
 
-part_1_result = Part1(copy.deepcopy(elf_set), 10)
-pass
+# Part 1 > 3882
+(part_1_result,_) = SimulateElves(copy.deepcopy(elf_set), range(1, 11))
+print("Part 1 Result: {}".format(part_1_result))
+
+# Part 2 > 1116
+(_, part_2_result) = SimulateElves(copy.deepcopy(elf_set), itertools.count(1))
+print("Part 2 Result: {}".format(part_2_result))
