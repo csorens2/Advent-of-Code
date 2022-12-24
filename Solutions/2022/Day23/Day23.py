@@ -77,8 +77,6 @@ def Part1(elf_set: set[Elf], rounds):
         RightPair()
     ]
     for _ in range(0, rounds):
-        PrintElfSet(elf_set)
-        print()
         del target_dict
         target_dict = {}
         elf_set_points = set(map(lambda x: x.Point, elf_set))
@@ -105,9 +103,12 @@ def Part1(elf_set: set[Elf], rounds):
         func_list.append(func_list[0])
         func_list.pop(0)
         pass
-    PrintElfSet(elf_set)
     x_min = functools.reduce(lambda acc, next: min(acc, next.Point[1]), elf_set, sys.maxsize)
     x_max = functools.reduce(lambda acc, next: max(acc, next.Point[1]), elf_set, -sys.maxsize)
+    y_min = functools.reduce(lambda acc, next: min(acc, next.Point[0]), elf_set, sys.maxsize)
+    y_max = functools.reduce(lambda acc, next: max(acc, next.Point[0]), elf_set, -sys.maxsize)
+    total_spaces = (abs(x_max - x_min)+1) * (abs(y_max - y_min)+1)
+    open_spaces = total_spaces - len(elf_set)
     pass
 
     return elf_set
