@@ -23,8 +23,8 @@ class Rotation(Enum):
     Left = 'L'
 
 class Person:
-    def __init__(self, start_y: int, start_x: int):
-        self.Orientation = Orientation.Right
+    def __init__(self, start_y: int, start_x: int, orientation: Orientation):
+        self.Orientation = orientation
         self.Y = start_y
         self.X = start_x
     def Rotate(self, rotation: Rotation):
@@ -33,7 +33,7 @@ class Person:
         if orientation_value == -1:
             self.Orientation = Orientation.Left
         elif orientation_value == 4:
-            self.Orientation = Orientation.Right
+            self.Orientation = Orientation.Up
         else:
             self.Orientation = Orientation(orientation_value)
     def Move(self, grid_map):
@@ -59,6 +59,16 @@ def GetNextPos(grid_map, curr_pos, orientation):
         else:
             continue
 
+def ParseGrid(map_lines):
+    max_width = functools.reduce(lambda acc, next: max(acc, len(next)), map_lines, 0)
+    map_grid = []
+    for line in map_lines:
+        next_line = [Space.Empty] * max_width
+        for (i, char) in enumerate(line):
+            next_line[i] = Space(char)
+        map_grid.append(next_line)
+    return map_grid
+
 def ParseInput(lines):
     map_lines = []
     traversal_operations = []
@@ -75,19 +85,8 @@ def ParseInput(lines):
                     traversal_operations.append((Operation.Rotate, match))
         else:
             map_lines.append(line)
-    max_width = functools.reduce(lambda acc, next: max(acc, len(next)), map_lines, 0)
-    map_grid = []
-    for line in map_lines:
-        next_line = [Space.Empty] * max_width
-        for (i, char) in enumerate(line):
-            next_line[i] = Space(char)
-        map_grid.append(next_line)
+    map_grid = ParseGrid(map_lines)
     return (map_grid, traversal_operations)
-
-file_path = sys.argv[1]
-file = open(file_path, 'r')
-input_lines = file.read().splitlines()
-(map_grid, traversal_operations) = ParseInput(input_lines)
 
 # Part 1
 def PartOne(map_grid, traversal_operations):
@@ -97,8 +96,10 @@ def PartOne(map_grid, traversal_operations):
                 if map_grid[y][x] == Space.Floor:
                     return(y,x)
     (y_pos, x_pos) = GetInitialPos(map_grid)
-    person = Person(y_pos, x_pos)
+    person = Person(y_pos, x_pos, Orientation.Right)
     for traversal in traversal_operations:
+        #print("Start: ({},{}) Orient: {}".format(person.Y, person.X, person.Orientation))
+        #print("")
         (operation, value) = traversal
         if operation == Operation.Move:
             num = int(value)
@@ -114,5 +115,13 @@ def PartOne(map_grid, traversal_operations):
     }
     return (1000*(person.Y+1)) + (4*(person.X+1)) + orientation_points_dict[person.Orientation]
 
-part_1_result = PartOne(map_grid, traversal_operations)
-pass
+def main():
+    file_path = sys.argv[1]
+    file = open(file_path, 'r')
+    input_lines = file.read().splitlines()
+    (map_grid, traversal_operations) = ParseInput(input_lines)
+    part_1_result = PartOne(map_grid, traversal_operations)
+    print("Hello World!")
+
+if __name__ == "__main__":
+    main()
