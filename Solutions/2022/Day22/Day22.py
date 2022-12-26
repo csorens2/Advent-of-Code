@@ -121,7 +121,6 @@ def main():
     input_lines = file.read().splitlines()
     (map_grid, traversal_operations) = ParseInput(input_lines)
     part_1_result = PartOne(map_grid, traversal_operations)
-    print("Hello World!")
 
 if __name__ == "__main__":
     main()
