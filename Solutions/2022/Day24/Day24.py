@@ -22,7 +22,8 @@ class Blizzard:
         self.Facing = facing
     def Move(self, grid_map):
         next_pos = GetNextPos(grid_map, self.Point, self.Facing)
-        while next_pos == Space.Wall:
+        (next_y, next_x) = next_pos
+        while grid_map[next_y][next_x] != Space.Open:
             next_pos = GetNextPos(grid_map, next_pos, self.Facing)
         self.Point = next_pos
 
@@ -67,7 +68,6 @@ file = open(file_path, 'r')
 input_lines = file.read().splitlines()
 (map_grid, blizzards, start_point, end_point) = ParseGrid(input_lines)
 
-
 # Part 1
 def GetNextBlizzard(map_grid, blizzards: list[Blizzard]):
     blizzard_set = set()
@@ -82,32 +82,35 @@ def Part1(map_grid, blizzards, start_point, end_point):
         return ((y_pos >= 0 and x_pos >= 0) and
                 (y_pos < len(map_grid) and x_pos < len(map_grid[y_pos])) and
                 (map_grid[y_pos][x_pos]))
-    queue = Queue()
-    queue.put((start_point, 0))
-    last_blizard_movement = 0
+    traversal_lambdas = [
+                lambda point: (point[0]+1, point[1]),
+                lambda point: (point[0]-1, point[1]),
+                lambda point: (point[0], point[1]+1),
+                lambda point: (point[0], point[1]-1),
+                lambda point: (point[0], point[1]),
+    ]
+    current_points = set([start_point])
+    next_points = set()
     blizzard_point_set = set()
     curr_blizzards = blizzards
+    num_steps = 0
     while True:
-        (curr_point, curr_steps) = queue.get()
-        (curr_y, curr_x) = curr_point
-        if start_point == end_point:
-            return curr_steps
-        if curr_steps > last_blizard_movement:
-            (blizzard_point_set, curr_blizzards) = GetNextBlizzard(map_grid, curr_blizzards)
-        if curr_point in blizzard_point_set:
-            continue
-        if not InBounds(curr_point, map_grid):
-            continue
-        if map_grid[curr_y][curr_x] == Space.Wall:
-            continue
-        traversal_lambdas = [
-            lambda point: (point[0]+1, point[1]),
-            lambda point: (point[0]-1, point[1]),
-            lambda point: (point[0], point[1]+1),
-            lambda point: (point[0], point[1]-1),
-        ]
-        for traversal in traversal_lambdas:
-            queue.put((traversal(curr_point), curr_steps+1))
+        # Increment the blizzards
+        (blizzard_point_set, curr_blizzards) = GetNextBlizzard(map_grid, curr_blizzards)
+        for point in current_points:
+            if point == end_point: 
+                return num_steps
+            for curr_lambda in traversal_lambdas:
+                next_point = curr_lambda(point)
+                (next_y, next_x) = next_point
+                if (next_point not in next_points and 
+                    next_point not in blizzard_point_set and
+                    InBounds(next_point, map_grid) and
+                    map_grid[next_y][next_x] == Space.Open):
+                    next_points.add(next_point)
+        current_points = next_points
+        next_points = set()
+        num_steps += 1
         
 part1_result = Part1(map_grid, blizzards, start_point, end_point)
 pass
