@@ -106,15 +106,8 @@ def DumpList(zero_node: NumberNode):
     print()
 
 # Part 1 > 7228
-#part_1_mix_count = 1
-#part_1_decryption_key = 1
-#part_1_root_node = ParseInput(input_lines, part_1_decryption_key)
-#part_1_result = MixNodes(part_1_root_node, len(input_lines), [1000, 2000, 3000], part_1_mix_count)
-#print("Part 1 Result: {}".format(part_1_result))
-
-# Part 2 > 
-#part_2_mix_count = 10
-#part_2_decryption_key = 811589153
-#part_2_root_node = ParseInput(input_lines, part_2_decryption_key)
-#part_2_result = MixNodes(part_2_root_node, len(input_lines), [1000, 2000, 3000], part_2_mix_count)
-#print("Part 2 Result: {}".format(part_2_result))
+part_1_mix_count = 1
+part_1_decryption_key = 1
+part_1_root_node = ParseInput(input_lines, part_1_decryption_key)
+part_1_result = MixNodes(part_1_root_node, len(input_lines), [1000, 2000, 3000], part_1_mix_count)
+print("Part 1 Result: {}".format(part_1_result))
