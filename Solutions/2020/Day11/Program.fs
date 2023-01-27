@@ -31,9 +31,15 @@ let printGrid (grid: SpaceEnum list list) =
     |> Seq.iter(fun x -> printRow x)
     printfn ""
 
-let getVisibleOccupieds (grid:SpaceEnum list list) (y:int) (x:int) = 
+let inBoundsCheck grid y x = 
+    if x >= 0 && y >= 0 && y < List.length(grid) && x < List.length(grid[0]) then
+        true
+    else
+        false
+
+let getVisibleCount (grid:SpaceEnum list list) (gridY:int) (gridX:int) = 
     let rec travelDirection (y,x) travelFunc = 
-        if x >= 0 && y >= 0 && y < List.length(grid) && x < List.length(grid[0]) then
+        if not (inBoundsCheck grid y x) then
             0
         else
             match grid[y][x] with
@@ -41,7 +47,7 @@ let getVisibleOccupieds (grid:SpaceEnum list list) (y:int) (x:int) =
             | SpaceEnum.Empty -> 0
             | SpaceEnum.Occupied -> 1
             | _ -> failwith "Unexpected SpaceEnum"
-    let directionFuncs = seq {
+    seq {
         (fun (y,x) -> (y-1, x));
         (fun (y,x) -> (y-1, x+1));
         (fun (y,x) -> (y, x+1));
@@ -51,41 +57,34 @@ let getVisibleOccupieds (grid:SpaceEnum list list) (y:int) (x:int) =
         (fun (y,x) -> (y, x-1));
         (fun (y,x) -> (y-1, x-1));
     }
-    directionFuncs
-    |> Seq.fold(fun acc next -> acc + (travelDirection (y,x) next)) 0
+    |> Seq.fold(fun acc next -> acc + (travelDirection (next(gridY,gridX)) next)) 0
 
-let getNearbyOccupieds (grid:SpaceEnum list list) (y:int) (x:int) = 
-    let inBoundsCheck grid y x = 
-        if (x >= 0 && y >= 0 && y < List.length(grid) && x < List.length(grid[0]) 
-                && grid[y][x] = SpaceEnum.Occupied) then
-            1
-        else
-            0
-    let adjacentSpots = seq {
-        (y-1, x);
-        (y-1, x+1);
-        (y, x+1);
-        (y+1,x+1);
-        (y+1,x);
-        (y+1,x-1);
-        (y, x-1);
-        (y-1,x-1);
+let getNearbyCount (grid:SpaceEnum list list) (gridY:int) (gridX:int) = 
+    seq {
+        (gridY-1, gridX);
+        (gridY-1, gridX+1);
+        (gridY, gridX+1);
+        (gridY+1,gridX+1);
+        (gridY+1,gridX);
+        (gridY+1,gridX-1);
+        (gridY, gridX-1);
+        (gridY-1,gridX-1);
     }
-    adjacentSpots
-    |> Seq.fold (fun acc (y2,x2) -> acc + (inBoundsCheck grid y2 x2)) 0
+    |> Seq.where (fun (y,x) -> inBoundsCheck grid y x)
+    |> Seq.where (fun (y,x) -> grid[y][x] = SpaceEnum.Occupied)
+    |> Seq.length
 
-
-let getOccupiedCount input occupiedFunction minimumForOccupiedFlip= 
+let getOccupiedCount input occupiedFunction minimumOccupiedForFlip = 
     let rec attemptGridUpdate (grid:SpaceEnum list list) surroundingOccupidesFunc = 
         let getNextGridPoint (grid:SpaceEnum list list) y x = 
             let nextOccupiedCount = surroundingOccupidesFunc grid y x
             let prevSeatType = grid[y][x]
-            let nextSeatType = 
+            let nextSeatType =   
                 match prevSeatType with
                 | SpaceEnum.Empty when nextOccupiedCount = 0 -> SpaceEnum.Occupied
                 | SpaceEnum.Empty when nextOccupiedCount <> 0 -> SpaceEnum.Empty
-                | SpaceEnum.Occupied when nextOccupiedCount >= minimumForOccupiedFlip -> SpaceEnum.Empty
-                | SpaceEnum.Occupied when nextOccupiedCount < minimumForOccupiedFlip -> SpaceEnum.Occupied
+                | SpaceEnum.Occupied when nextOccupiedCount >= minimumOccupiedForFlip -> SpaceEnum.Empty
+                | SpaceEnum.Occupied when nextOccupiedCount < minimumOccupiedForFlip -> SpaceEnum.Occupied
                 | SpaceEnum.Floor -> SpaceEnum.Floor
                 | _ -> failwith "Unknown floor type"
             (nextSeatType, prevSeatType = nextSeatType)
@@ -103,10 +102,10 @@ let getOccupiedCount input occupiedFunction minimumForOccupiedFlip=
                 row
                 |> List.exists(fun (_,y) -> not y))
         let prunedGrid = 
-                baseGrid
-                |> List.map(fun y ->
-                    y
-                    |> List.map(fun (x,_) -> x))
+            baseGrid
+            |> List.map(fun y ->
+                y
+                |> List.map(fun (x,_) -> x))
         if not anyFlipped then
             let countOccupied (row: SpaceEnum list) = 
                 row
@@ -115,7 +114,7 @@ let getOccupiedCount input occupiedFunction minimumForOccupiedFlip=
             prunedGrid
             |> Seq.fold (fun acc next -> acc + (countOccupied next)) 0
         else
-            printGrid prunedGrid
+            //printGrid prunedGrid
             attemptGridUpdate prunedGrid occupiedFunction
     
     attemptGridUpdate input occupiedFunction
@@ -123,8 +122,8 @@ let getOccupiedCount input occupiedFunction minimumForOccupiedFlip=
 [<EntryPoint>]
 let main _ =
     let input = ParseInput("Input.txt")
-    let part1Result = getOccupiedCount input getNearbyOccupieds 4
+    let part1Result = getOccupiedCount input getNearbyCount 4
     printfn "Part 1 Result: %d" part1Result 
-    let part2Result = getOccupiedCount input getVisibleOccupieds 5
+    let part2Result = getOccupiedCount input getVisibleCount 5
     printfn "Part 2 Result: %d" part2Result
     0
