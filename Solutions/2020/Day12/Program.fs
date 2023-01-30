@@ -40,8 +40,11 @@ let part1 (input: seq<Action * int>) =
         (Action.West, (fun (x, y) -> (x-1,y)))
     ]
 
-    let moveBoat (currBoat: Boat) (nextAction, value) = 
-        if nextAction in [Action.North; Action.South; Action.East]
+    let processAction boat (nextAction,actionVal) = 
+        if 
+
+    input
+    |> Seq.fold (fun acc (nextAct, nextVal) -> ) Boat(0, 0, 90)
 
 [<EntryPoint>]
 let main _ =
