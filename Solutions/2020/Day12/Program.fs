@@ -39,9 +39,11 @@ let part1 (input: seq<Action * int>) =
         (Action.East, (fun (x, y) -> (x+1,y))),
         (Action.West, (fun (x, y) -> (x-1,y)))
     ]
-
-    let processAction boat (nextAction,actionVal) = 
-        if 
+    let processAction (boatX,boatY) facing (nextAction,actionVal) = 
+        if List.contains nextAction (Map.keys directionActionDict) then
+            directionActionDict(nextAction) (boat)
+        else
+            
 
     input
     |> Seq.fold (fun acc (nextAct, nextVal) -> ) Boat(0, 0, 90)
