@@ -1,58 +1,88 @@
 ﻿open System.IO
 open System.Text.RegularExpressions
 
-type Action = 
-    | Forward = 0
-    | Rotate_Right = 1
-    | Rotate_Left = 2
-    | North = 3
-    | East = 4
-    | South = 5
-    | West = 6 
+type Direction = 
+    | North = 0
+    | East = 1
+    | South = 2
+    | West = 3
 
-type Boat(currX, currY, facing) = 
-    member this.X = currX
-    member this.Y = currY
-    member this.Facing = facing
+type Action = 
+    | Forward of int
+    | Move of Direction * int
+    | Rotate of bool * int
+
+type Part = 
+    | One = 0
+    | Two = 0
 
 let ParseInput filepath = 
     let rx = Regex(@"([a-zA-Z])(\d+)", RegexOptions.Compiled)
     File.ReadLines(filepath)
     |> Seq.map (fun x ->
         let rxMatch = rx.Match(x)
-        let actionMatch = 
-            match rxMatch.Groups[1].Value with
-            | "F" -> Action.Forward
-            | "R" -> Action.Rotate_Right
-            | "L" -> Action.Rotate_Left
-            | "N" -> Action.North
-            | "S" -> Action.South
-            | "E" -> Action.East
-            | "W" -> Action.West
-            | _ -> failwith "Unexpected Action"
-        (actionMatch, int(rxMatch.Groups[2].Value)))
+        let rxAction = rxMatch.Groups[1].Value
+        let rxValue = int(rxMatch.Groups[2].Value)
+        match rxAction with
+        | "F" -> Forward(rxValue)
+        | "R" -> Rotate(true, rxValue / 90)
+        | "L" -> Rotate(false, rxValue / 90)
+        | "N" -> Move(Direction.North, rxValue)
+        | "S" -> Move(Direction.South, rxValue)
+        | "E" -> Move(Direction.East, rxValue)
+        | "W" -> Move(Direction.West, rxValue)
+        | _ -> failwith "Unexpected Action")
 
-let part1 (input: seq<Action * int>) = 
-    let directionActionDict = [
-        (Action.North, (fun (x, y) -> (x,y+1))),
-        (Action.South, (fun (x, y) -> (x,y-1))),
-        (Action.East, (fun (x, y) -> (x+1,y))),
-        (Action.West, (fun (x, y) -> (x-1,y)))
-    ]
-    let processAction (boatX,boatY) facing (nextAction,actionVal) = 
-        if List.contains nextAction (Map.keys directionActionDict) then
-            directionActionDict(nextAction) (boat)
+let processMove (sourceX,sourceY) (dirX,dirY) moveVal = 
+            (sourceX + (dirX * moveVal), sourceY + (dirY * moveVal))
+
+let processRotate (waypointXY: int*int) (direction: bool) (num:int) = 
+    let rotateDict = 
+        Map.empty.
+            Add(true, fun (x,y) -> (y, -1 * x)).
+            Add(false, fun (x,y) -> (-1*y,x))
+    [0..num-1]
+    |> Seq.fold (fun acc _ -> rotateDict[direction] acc) waypointXY
+
+let dirToPoint = 
+    Map.empty.
+        Add(Direction.North, (0,1)).
+        Add(Direction.East, (1,0)).
+        Add(Direction.South, (0,-1)).
+        Add(Direction.West, (-1,0));
+
+let part1 (input : seq<Action>) = 
+    let rec boatPos (boatXY: int*int) (waypointXY: int*int) (remainingActions: seq<Action>) = 
+        if Seq.isEmpty remainingActions then
+            let (boatX, boatY) = boatXY
+            abs(boatX) + abs(boatY)
         else
-            
+            let nextActions = Seq.tail remainingActions
+            match Seq.head remainingActions with
+            | Forward value -> boatPos (processMove boatXY waypointXY value) waypointXY nextActions
+            | Move (dir,value) -> boatPos (processMove boatXY dirToPoint[dir] value) waypointXY nextActions
+            | Rotate (dir, value) -> boatPos boatXY (processRotate waypointXY dir value) nextActions
+    boatPos (0,0) (1,0) input
 
-    input
-    |> Seq.fold (fun acc (nextAct, nextVal) -> ) Boat(0, 0, 90)
+let part2 (input: seq<Action>) = 
+    let rec boatPos (boatXY: int*int) (waypointXY: int*int) (remainingActions: seq<Action>) = 
+        if Seq.isEmpty remainingActions then
+            let (boatX, boatY) = boatXY
+            abs(boatX) + abs(boatY)
+        else
+            let nextActions = Seq.tail remainingActions
+            match Seq.head remainingActions with
+            | Forward value -> boatPos (processMove boatXY waypointXY value) waypointXY nextActions
+            | Move (dir,value) -> boatPos boatXY (processMove waypointXY dirToPoint[dir] value) nextActions
+            | Rotate (dir, value) -> boatPos boatXY (processRotate waypointXY dir value) nextActions
+    boatPos (0,0) (10,1) input
+            
 
 [<EntryPoint>]
 let main _ =
     let input = ParseInput("Input.txt")
-    //let part1Result = getOccupiedCount input getNearbyCount 4
-    //printfn "Part 1 Result: %d" part1Result 
-    //let part2Result = getOccupiedCount input getVisibleCount 5
-    //printfn "Part 2 Result: %d" part2Result
+    let part1Result = part1 input
+    printfn "Part 1 Result: %d" part1Result 
+    let part2Result = part2 input
+    printfn "Part 2 Result: %d" part2Result
     0
