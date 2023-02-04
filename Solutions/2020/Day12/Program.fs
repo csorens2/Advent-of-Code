@@ -82,7 +82,7 @@ let part2 (input: seq<Action>) =
 let main _ =
     let input = ParseInput("Input.txt")
     let part1Result = part1 input
-    printfn "Part 1 Result: %d" part1Result 
+    printfn "Part 1 Result: %d" part1Result // 1687
     let part2Result = part2 input
-    printfn "Part 2 Result: %d" part2Result
+    printfn "Part 2 Result: %d" part2Result // 20873
     0
