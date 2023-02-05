@@ -6,9 +6,9 @@ use std::path::Path;
 fn main() {
     let input = read_input();
     let part_one = part_one(&input);
-    println!("Part one result {}", part_one);
+    println!("Part one result {}", part_one); // 1559
     let part_two = part_two(&input);
-    println!("Part two result {}", part_two);
+    println!("Part two result {}", part_two); // 1600
 }
 
 fn read_input() -> Vec<i32> {
