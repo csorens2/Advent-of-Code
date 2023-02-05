@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 
 function get_input(filepath) {
-    return readFileSync(filepath, 'utf-8').split(",").map(val => parseInt(val));;
+    return readFileSync(filepath, 'utf-8').split(",").map(val => parseInt(val));
 }
 
 function process_instructions(instructions: number[], i: number)
@@ -59,5 +59,3 @@ const part_one_result = part_one([...input]);
 console.log(`Part 1 Result: ${part_one_result}`); // 3760627
 const part_two_result = part_two([...input]);
 console.log(`Part 2 Result: ${part_two_result}`); // 7195
-
-console.debug();
