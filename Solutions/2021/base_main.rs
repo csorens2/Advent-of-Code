@@ -13,6 +13,10 @@ fn read_input() -> std::io::Lines<BufReader<File>> {
     let args: Vec<String> = std::env::args().collect();
     let path = std::path::Path::new(&args[1]);
     let file = File::open(&path).unwrap();
+    let lines = 
+        BufReader::new(file).
+        lines().into_iter().
+        map(|x| x.unwrap().parse::<i32>().unwrap()).collect();
 
     return BufReader::new(file).lines();
 }

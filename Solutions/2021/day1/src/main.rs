@@ -15,6 +15,7 @@ fn read_input() -> Vec<i32> {
     let args: Vec<String> = env::args().collect();
     let path = Path::new(&args[1]);
     let file = File::open(&path).unwrap();
+    
 
     return BufReader::new(file).
         lines().into_iter().
