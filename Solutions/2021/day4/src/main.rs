@@ -6,8 +6,8 @@ fn main() {
     let input = read_input();
     let part_one = part_one(input.clone());
     println!("Part one result {}", part_one);
-    //let part_two = part_two(&input);
-    //println!("Part two result {}", part_two);
+    let part_two = part_two(input.clone());
+    println!("Part two result {}", part_two);
 }
 
 fn read_input() -> (Vec<i32>, Vec<Vec<Vec<(i32, bool)>>>) {
@@ -41,13 +41,14 @@ fn read_input() -> (Vec<i32>, Vec<Vec<Vec<(i32, bool)>>>) {
 }
 
 fn part_one(input: (Vec<i32>, Vec<Vec<Vec<(i32, bool)>>>)) -> i32 {
-    let (nums, grids) = input;
+    let nums = input.0;
+    let mut grids = input.1;
 
-    for num in nums {
+    for n in 0..nums.len() {
+        let num = nums[n];
         for i in 0..grids.len() {
-            grids[i] = update_grid(num, &mut grids[i]);
-
-            if check_grid(&grids[i]) {
+            update_grid(num, &mut grids[i]);
+            if check_grid_done(&grids[i]) {
                 return sum_grid(&grids[i]) * num;
             }
         }
@@ -56,25 +57,23 @@ fn part_one(input: (Vec<i32>, Vec<Vec<Vec<(i32, bool)>>>)) -> i32 {
     panic!("Should have sumgrid");
 }
 
-fn update_grid(num: i32, grid: & mut Vec<Vec<(i32,bool)>>) -> &mut Vec<Vec<(i32,bool)>> {
-
-    for x in 0..grid.len() {
-        for y in 0..grid.len() {
+fn update_grid(num: i32, grid: &mut Vec<Vec<(i32,bool)>>) {
+    for y in 0..grid.len() {
+        for x in 0..grid.len() {
             if grid[x][y].0 == num {
                 grid[x][y].1 = true;
+                return;
             }
         }
     }
-    return grid;
 }
 
-fn check_grid(grid: &Vec<Vec<(i32,bool)>>) -> bool {
+fn check_grid_done(grid: &Vec<Vec<(i32,bool)>>) -> bool {
     let grid_len = grid[0].len();
-
     // Check row
     for y in 0..grid_len {
         let mut row_called = true;
-        for x in 0..grid_len - 1 {
+        for x in 0..grid_len {
             if grid[x][y].1 == false {
                 row_called = false;
                 break;
@@ -84,11 +83,10 @@ fn check_grid(grid: &Vec<Vec<(i32,bool)>>) -> bool {
             return true;
         }
     }
-
     // Check columns
-    for x in 0..grid_len- 1 {
+    for x in 0..grid_len {
         let mut col_called = true;
-        for y in 0..grid_len - 1 {
+        for y in 0..grid_len {
             if grid[x][y].1 == false {
                 col_called = false;
                 break;
@@ -98,42 +96,39 @@ fn check_grid(grid: &Vec<Vec<(i32,bool)>>) -> bool {
             return true;
         }
     }
-
-    // Check diags
-    let diags = vec![
-        vec![(0,0),(1,1),(2,2),(3,3),(4,4)], 
-        vec![(4,0),(3,1),(2,2),(1,3),(0,4)]
-    ];
-
-    for diag in diags {
-        let mut diag_called = true;
-        for (diag_x, diag_y) in diag {
-            if grid[diag_x][diag_y].1 == false {
-                diag_called = false;
-                break;
-            }
-        }
-        if diag_called {
-            return true;
-        }
-    }
     return false;
 }
 
 fn sum_grid(grid: &Vec<Vec<(i32,bool)>>) -> i32 {
-
     let mut to_return = 0;
     for row in grid {
         for (val, used) in row {
-            if *used {
+            if *used == false {
                 to_return += val;
             }
         }
     }
-
     return to_return;
 }
 
-fn part_two() -> i32 {
-    return 0;
+
+fn part_two(input: (Vec<i32>, Vec<Vec<Vec<(i32, bool)>>>)) -> i32 {
+    let nums = input.0;
+    let mut grids = input.1;
+
+    for n in 0..nums.len() {
+        let num = nums[n];
+        for i in (0..grids.len()).rev() {
+            update_grid(num, &mut grids[i]);
+            if check_grid_done(&grids[i]) {
+                if grids.len() == 1 {
+                    return sum_grid(&grids[i]) * num;
+                }
+                else {
+                    grids.remove(i);
+                }
+            }
+        }
+    }
+    panic!("Should have sumgrid");
 }
