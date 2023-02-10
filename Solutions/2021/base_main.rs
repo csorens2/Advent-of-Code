@@ -4,21 +4,21 @@ use std::io::{prelude::*, BufReader};
 fn main() {
     let input = read_input();
     //let part_one = part_one(&input);
-    //println!("Part one result {}", part_one); // 1559
+    //println!("Part one result {}", part_one); 
     //let part_two = part_two(&input);
-    //println!("Part two result {}", part_two); // 1600
+    //println!("Part two result {}", part_two);
 }
 
-fn read_input() -> std::io::Lines<BufReader<File>> {
+fn read_input() -> Vec<i32> {
     let args: Vec<String> = std::env::args().collect();
     let path = std::path::Path::new(&args[1]);
     let file = File::open(&path).unwrap();
-    let lines = 
+    let lines: Vec<i32> = 
         BufReader::new(file).
         lines().into_iter().
         map(|x| x.unwrap().parse::<i32>().unwrap()).collect();
 
-    return BufReader::new(file).lines();
+    return lines;
 }
 
 fn part_one() -> i32 {
