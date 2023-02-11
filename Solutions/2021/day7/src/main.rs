@@ -75,20 +75,17 @@ fn part_two(input: &Vec<i32>) -> i32 {
 
     let mut fuel_vec = vec![0; (max_pos+1) as usize];
     for (pos, crab_num) in crab_stacks.iter() {
-        let mut curr_fuel = 1;
-        let mut cum_fuel = 0;
-        for i in *pos+1..max_pos+1
-        {
-            cum_fuel += curr_fuel;
-            curr_fuel += 1;
-            fuel_vec[i as usize] += crab_num * cum_fuel;
-        }
-        curr_fuel = 1;
-        cum_fuel = 0;
-        for i in (min_pos..*pos).rev() {
-            cum_fuel += curr_fuel;
-            curr_fuel += 1;
-            fuel_vec[i as usize] += crab_num * cum_fuel;
+        let ranges = vec![
+            (*pos+1..max_pos+1).collect::<Vec<i32>>(),
+            (min_pos..*pos).rev().collect::<Vec<i32>>()];
+        for range in ranges {
+            let mut curr_fuel = 1;
+            let mut cum_fuel = 0;
+            for i in range {
+                cum_fuel += curr_fuel;
+                curr_fuel += 1;
+                fuel_vec[i as usize] += crab_num * cum_fuel;
+            }
         }
     }
     fuel_vec.sort();
