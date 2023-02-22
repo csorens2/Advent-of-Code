@@ -54,7 +54,6 @@ def main():
     print("Part 1 Result: {}".format(part_1_result)) # 3679
     part_2_result = Part2(input)
     print("Part 2 Result: {}".format(part_2_result)) # 107395
-    pass
 
 if __name__ == "__main__":
     main()
