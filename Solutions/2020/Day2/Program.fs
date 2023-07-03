@@ -1,22 +1,26 @@
 ﻿open System.IO
-open System
 open System.Text.RegularExpressions
 
-type Password(min:int, max:int, letter:char, password:string) = 
-    member this.Min = min
-    member this.Max = max
-    member this.Letter = letter
-    member this.Password = password
+type Password = {
+    Min: int
+    Max: int
+    Letter: char
+    Password: string
+}
 
 let ParseInput filepath = 
     let rx = Regex(@"(\d+)[-](\d+) (\w+): (\w+)", RegexOptions.Compiled)
     File.ReadLines(filepath)      
     |> Seq.map(fun x -> rx.Match(x))
-    |> Seq.map(fun x -> Password(int(x.Groups[1].Value), int(x.Groups[2].Value), char(x.Groups[3].Value), string(x.Groups[4].Value)))
-    |> Seq.toList
+    |> Seq.map(fun x -> {
+        Password.Min = int(x.Groups[1].Value); 
+        Max = int(x.Groups[2].Value); 
+        Letter = char(x.Groups[3].Value);
+        Password = string(x.Groups[4].Value)}) 
+    |> Seq.cache
 
-let Part1 (passwords:seq<Password>) = 
-    let validpassword (password:Password) = 
+let Part1 passwords = 
+    let validpassword password = 
         let charCount = 
             password.Password
             |> Seq.where (fun x -> x = password.Letter)
@@ -26,8 +30,8 @@ let Part1 (passwords:seq<Password>) =
     |> Seq.where (fun x -> validpassword x)
     |> Seq.length
 
-let Part1Optimized (passwords:seq<Password>) = 
-    let validpassword (password:Password) = 
+let Part1Optimized passwords = 
+    let validpassword password = 
         let rec countletters remainingChars count = 
             if count > password.Max then
                 false
@@ -43,8 +47,8 @@ let Part1Optimized (passwords:seq<Password>) =
     |> Seq.where (fun x -> validpassword x)
     |> Seq.length
 
-let Part2 (passwords:seq<Password>) = 
-    let validpassword (password:Password) = 
+let Part2 passwords = 
+    let validpassword password = 
         let minchar = password.Password[password.Min-1]
         let maxchar = password.Password[password.Max-1]
         (minchar <> maxchar) && ((minchar = password.Letter) || (maxchar = password.Letter))
@@ -56,9 +60,9 @@ let Part2 (passwords:seq<Password>) =
 let main _ =
     let input = ParseInput("Input.txt")
     let part1Result = Part1(input)
-    printfn "Part 1 Result: %d" part1Result 
+    printfn "Part 1 Result: %d" part1Result // 548
     let part12Result = Part1Optimized(input)
-    printfn "Part 1 Take 2 Result: %d" part12Result 
+    printfn "Part 1 Take 2 Result: %d" part12Result // 548
     let part2Result = Part2(input)
-    printfn "Part 2 Result: %d" part2Result
+    printfn "Part 2 Result: %d" part2Result // 502
     0

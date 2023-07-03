@@ -1,6 +1,8 @@
 ﻿open System.IO
 
-type Space = Open = '.' | Tree = '#'
+type Space = 
+    | Open = '.' 
+    | Tree = '#'
 
 let ParseInput filepath = 
     File.ReadLines(filepath) 
@@ -36,7 +38,7 @@ let Part2 grid =
 let main _ =
     let input = ParseInput("Input.txt")
     let part1Result = CountTrees input (1, 3)
-    printfn "Part 1 Result: %d" part1Result 
+    printfn "Part 1 Result: %d" part1Result  // 259
     let part2Result = Part2(input)
-    printfn "Part 2 Result: %d" part2Result
+    printfn "Part 2 Result: %d" part2Result // 2224913600
     0

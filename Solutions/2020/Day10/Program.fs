@@ -4,54 +4,60 @@ open System.IO
 let maxJoltJump = 3
 
 let ParseInput filepath = 
-    File.ReadLines(filepath)
-    |> Seq.map int
+    let input = 
+        File.ReadLines(filepath)
+        |> Seq.map int
+        |> Seq.toList
+    let builtInAdapter = 
+        (input |> List.max) + maxJoltJump
+    0::builtInAdapter::input
+    |> List.sort
 
-let Part1 (input:int list) = 
-    let rec processAdapters (joltList:int list) (lastJolt:int) (joltDiffs:int*int*int) = 
-        if joltList.IsEmpty then
-            joltDiffs
-        else
-            let nextJolt = joltList.Head
-            let nextDiff = nextJolt - lastJolt
-            let (diff1, diff2, diff3) = joltDiffs
-            let nextJoltDiff = 
-                match nextDiff with
-                | 1 -> (diff1 + 1, diff2, diff3)
-                | 2 -> (diff1, diff2 + 1, diff3)
-                | 3 -> (diff1, diff2, diff3 + 1)
-                | _ -> raise (Exception "Unexpected diff size")
-            processAdapters (joltList.Tail) nextJolt nextJoltDiff
-    let sortedInput = 
-        input
-        |> List.sort
-    let builtInJoltage = (List.last sortedInput) + maxJoltJump
-    let (diff1, _, diff3) = processAdapters (sortedInput @ [builtInJoltage]) 0 (0,0,0)
-    diff1 * diff3
+let Part1 input = 
+    let rec processAdapters joltList oneJoltDiffs threeJoltDiffs = 
+        match joltList with
+        | [] | [_] -> oneJoltDiffs * threeJoltDiffs
+        | current::next::remaining -> 
+            match next - current with
+            | 1 -> processAdapters (next::remaining) (oneJoltDiffs + 1) threeJoltDiffs
+            | 3 -> processAdapters (next::remaining) oneJoltDiffs (threeJoltDiffs + 1)
+            | _ -> processAdapters (next::remaining) oneJoltDiffs threeJoltDiffs
+    processAdapters input 0 0
 
-let Part2 (input:int list) = 
-    let rec processAdapters (joltMap:Map<uint64, uint64>) (joltList:uint64 list) (currentJolt:uint64) (targetJolt:uint64) =
-        if joltMap.ContainsKey(currentJolt) then
-            joltMap
-        elif currentJolt > targetJolt then
-            joltMap.Add(currentJolt, 0UL)
-        else
-            let nextPossibleJolts = 
-                joltList
-                |> List.takeWhile (fun x -> x <= currentJolt + uint64(maxJoltJump))
-            let updatedJoltMap =  
-                nextPossibleJolts
-                |> List.fold (fun acc next -> (processAdapters acc (joltList |> List.skipWhile (fun x -> x <= next)) next targetJolt)) joltMap
-            let mapValue = 
-                nextPossibleJolts
-                |> List.fold (fun acc next -> acc + updatedJoltMap[next]) 0UL
-            updatedJoltMap.Add(currentJolt, mapValue)
-    let sortedConvertedInput = 
+let Part2 input = 
+    let rec processAdapters adapterMap adapterList = 
+        match adapterList with 
+        | [] -> raise (Exception "Processing empty adapter list.")
+        | [_] -> adapterMap
+        | currAdapter::remainingAdapters ->
+            match Map.tryFind currAdapter adapterMap with
+            | Some _ -> adapterMap
+            | None -> 
+                let nextAdapters = 
+                    remainingAdapters
+                    |> List.takeWhile (fun volt -> volt <= currAdapter + uint64(maxJoltJump))
+                match List.isEmpty nextAdapters with
+                | true -> adapterMap
+                | false -> 
+                    let updatedAdapterMap = 
+                        nextAdapters
+                        |> List.fold (fun acc nextAdapter -> 
+                            let nextList =   
+                                adapterList
+                                |> List.skipWhile (fun adapterVolt -> adapterVolt <= nextAdapter)
+                            processAdapters acc (nextAdapter::nextList)) adapterMap
+                    let adapterPossibilities = 
+                        nextAdapters
+                        |> List.fold (fun acc nextAdapter -> acc + updatedAdapterMap[nextAdapter]) 0UL
+                    updatedAdapterMap.Add(currAdapter, adapterPossibilities)     
+    let convertedList = 
         input
         |> List.map uint64
-        |> List.sort
-    let builtInJoltage = (List.last sortedConvertedInput) + uint64(maxJoltJump)
-    let resultMap = processAdapters (Map.empty.Add(builtInJoltage, 1UL)) (sortedConvertedInput @ [builtInJoltage]) 0UL builtInJoltage
+    let lastAdapter = 
+        List.last convertedList
+    let baseMap = 
+        Map.add lastAdapter 1UL Map.empty
+    let resultMap = processAdapters baseMap convertedList
     resultMap[0UL]
 
 [<EntryPoint>]
