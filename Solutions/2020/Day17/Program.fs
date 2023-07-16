@@ -1,23 +1,11 @@
 ﻿open System
 open System.IO
 
-
-type Cube = {
-    XPos: int
-    YPos: int
-    ZPos: int
-}
-
-let cubeToTuple cube = 
-    (cube.XPos, cube.YPos, cube.ZPos)
-
-type CubeBounds = {
-    MinX: int
-    MaxX: int
-    MinY: int
-    MaxY: int
-    MinZ: int
-    MaxZ: int
+/// The problem deals with "Conway Cubes". But seeing as its only a cube in problem 1, and in problem 2 its a tesseract, we'll just call them "Conways"
+///
+/// Yes, I am aware that the dimensions then are just another name for vector. I like keeping things practical instead of academic.
+type Conway = {
+    Dimensions: int array
 }
 
 let ParseInput filepath = 
@@ -27,89 +15,107 @@ let ParseInput filepath =
     |> Seq.map (fun (yPos, line) -> 
         line
         |> Seq.indexed
-        |> Seq.where (fun (_, cubeValue) -> cubeValue = activeSpace)
-        |> Seq.map (fun (xPos, _ ) -> {Cube.XPos = xPos; YPos = yPos; ZPos = 0;}))
+        |> Seq.where (fun (_, conValue) -> conValue = activeSpace)
+        |> Seq.map (fun (xPos, _ ) -> {Conway.Dimensions = [|xPos;yPos|]}))
     |> Seq.collect id
+    |> Set.ofSeq    
+
+let GetNumDimensions conSet = 
+    match conSet |> Set.toSeq |> Seq.tryHead with 
+    | Some con -> con.Dimensions.Length
+    | None -> raise (Exception "No conways in set.") 
+
+/// Scales the Conway's dimensions. For example, going from 3d to 4d, or 4d to 2d.
+let ScaleConwayDimensions targetDimensions conSet = 
+    let baseDimensions = GetNumDimensions conSet
+    let dimensionDiff = targetDimensions - baseDimensions
+    conSet
+    |> Set.map (fun con -> 
+        {
+            con with
+                Dimensions = 
+                    match sign dimensionDiff with
+                    | 1 -> Array.append con.Dimensions (Array.init dimensionDiff (fun _ -> 0)) // Grow the dimensions
+                    | -1 -> Array.take (abs dimensionDiff) con.Dimensions // Shrink the dimensions
+                    | _ -> con.Dimensions
+        })
+
+/// Gets the bounds for the space that the given conways take up. For example, the (min,max)x, (min,max)y, etc.
+let GetBoundsFromConwaySet conSet = 
+    Array.init (GetNumDimensions conSet) (fun dimensionIndex -> 
+        let dimensionValues = 
+            conSet
+            |> Set.toSeq
+            |> Seq.map (fun con -> con.Dimensions[dimensionIndex])
+        (Seq.min dimensionValues, Seq.max dimensionValues))
+
+/// Gets all conways located in a bounds
+let rec GetAllConwaysInBounds (currentDimensionValues: int array) dimensionIndex (bounds: (int*int) array) = seq {
+    match dimensionIndex = currentDimensionValues.Length with 
+    | true -> 
+        yield {Conway.Dimensions = currentDimensionValues}
+    | false -> 
+        let (leftBound,rightBound) = bounds[dimensionIndex]
+        for nextDimValue in [leftBound..rightBound] do
+            yield! 
+                GetAllConwaysInBounds
+                    (Array.mapi (fun index value -> if index = dimensionIndex then nextDimValue else value) currentDimensionValues)
+                    (dimensionIndex + 1)
+                    bounds
+}
+
+/// Counts the number of conways in the given set that surround the given conway
+let CountSurrounding targetCon conSet = 
+    GetBoundsFromConwaySet (Set.add targetCon Set.empty)
+    |> Array.map (fun (min,max) -> (min-1,max+1))
+    |> GetAllConwaysInBounds (Array.create targetCon.Dimensions.Length 0) 0
+    |> Set.ofSeq
+    |> Set.remove targetCon
+    |> Set.intersect conSet
+    |> Set.count   
+
+/// Process a single cycle
+let ProcessCycle conSet = 
+    GetBoundsFromConwaySet conSet
+    |> Array.map (fun (min,max) -> (min-1,max+1))
+    |> GetAllConwaysInBounds (Array.create (GetNumDimensions conSet) 0) 0
+    |> Set.ofSeq
+    |> Seq.where (fun con ->
+        match Set.contains con conSet with
+        | true -> // Con is active
+            let surrounding = CountSurrounding con conSet
+            match CountSurrounding con conSet with
+            | 2 | 3 -> true
+            | _ -> false
+        | false -> // Con is inactive
+            match CountSurrounding con conSet with
+            | 3 -> true
+            | _ -> false
+        )
     |> Set.ofSeq
 
-let Part1 (input: Set<Cube>) = 
-    let rec getBounds (remainingCubes: Cube list) (currBounds: CubeBounds) = 
-        match remainingCubes with
-        | [] -> 
-            {
-                currBounds with
-                    MinX = currBounds.MinX - 1
-                    MaxX = currBounds.MaxX + 1
-                    MinY = currBounds.MinY - 1
-                    MaxY = currBounds.MaxY + 1
-                    MinZ = currBounds.MinZ - 1
-                    MaxZ = currBounds.MaxZ + 1
-            }
-        | nextCube :: _ -> 
-            getBounds
-                (List.tail remainingCubes)
-                { 
-                    currBounds with
-                        MinX = min currBounds.MinX nextCube.XPos
-                        MaxX = max currBounds.MaxX nextCube.XPos
-                        MinY = min currBounds.MinY nextCube.YPos
-                        MaxY = max currBounds.MaxY nextCube.YPos
-                        MinZ = min currBounds.MinZ nextCube.ZPos
-                        MaxZ = max currBounds.MaxZ nextCube.ZPos
-                }
-    let baseBounds = {
-        CubeBounds.MinX = System.Int32.MaxValue
-        MaxX = System.Int32.MinValue
-        MinY = System.Int32.MaxValue
-        MaxY = System.Int32.MinValue
-        MinZ = System.Int32.MaxValue
-        MaxZ = System.Int32.MinValue
-    }
+let rec SimulateCycles remainingCycles conSet  = 
+    match remainingCycles with 
+    | 0 -> conSet
+    | _ -> SimulateCycles (remainingCycles - 1) (ProcessCycle conSet) 
 
-    let processCycle cubeSet = 
-        let countSurrounding targetCube cubesToCheck =
-            let surroundingCubes cube = seq {
-                let (xPos,yPos,zPos) = cubeToTuple cube
-                for x in xPos-1..xPos+1 do
-                    for y in yPos-1..yPos+1 do
-                        for z in zPos-1..zPos+1 do
-                            if (xPos,yPos,zPos) <> (x,y,z) then
-                                yield {Cube.XPos = x; YPos = y; ZPos = z}
-            
-            }
-            (surroundingCubes targetCube)
-            |> Seq.where (fun cube -> Set.contains cube cubesToCheck)
-            |> Seq.length
-        let bounds = 
-            getBounds (Set.toList cubeSet) baseBounds
-        seq {
-            for x in bounds.MinX..bounds.MaxX do
-                for y in bounds.MinY..bounds.MaxY do
-                    for z in bounds.MinZ..bounds.MaxZ do
-                        let nextCube = 
-                            {Cube.XPos = x; YPos = y; ZPos = z}
-                        let surroundingCount = 
-                            countSurrounding nextCube cubeSet
-                        if cubeSet.Contains nextCube && (surroundingCount = 2 || surroundingCount = 3) then // Active
-                            yield nextCube
-                        elif surroundingCount = 3 then 
-                            yield nextCube
-        }
-        |> Set.ofSeq
-    let rec simulateCycles cubeSet remainingCycles = 
-        match remainingCycles with 
-        | 0 -> cubeSet
-        | _ -> 
-            simulateCycles (processCycle cubeSet) (remainingCycles - 1)
-    simulateCycles input 6
+let Part1 input = 
+    input
+    |> ScaleConwayDimensions 3
+    |> SimulateCycles 6
     |> Set.count
-            
+
+let Part2 input = 
+    input 
+    |> ScaleConwayDimensions 4
+    |> SimulateCycles 6 
+    |> Set.count
 
 [<EntryPoint>]
 let main _ =
     let input = ParseInput("Input.txt")
     let part1Result = Part1 input
     printfn "Part 1 Result: %d" part1Result // 359
-    //let part2Result = Part2 input
-    //printfn "Part 2 Result: %d" part2Result // 
+    let part2Result = Part2 input
+    printfn "Part 2 Result: %d" part2Result // 2228
     0
