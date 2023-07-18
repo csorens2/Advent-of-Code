@@ -190,7 +190,7 @@ let RunSimulation initialConways (parameter: SimulationParameters) =
             parameter.CycleFunction 
             parameter.Cycles 
             (ScaleConwayDimensions parameter.Dimensions initialConways)
-    printfn "Part %s %s Result: %d Runtime: %.2f" 
+    printfn "Part %s %s Result: %d Runtime: %.2f Seconds" 
         (parameter.Part.ToString())
         (parameter.SimulationVersion.ToString())
         (Set.count simResult)
