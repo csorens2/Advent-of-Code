@@ -26,18 +26,18 @@ let rec BuildNumSeq_NameAndDigit remainingString = seq {
     ]
 
     if not (String.IsNullOrEmpty remainingString) then
-        if System.Char.IsDigit (Seq.head remainingString) then
+        match System.Char.IsDigit (Seq.head remainingString) with
+        | true -> 
             yield (int (Seq.head remainingString)) - (int '0')
             yield! BuildNumSeq_NameAndDigit (remainingString.Substring 1)
-        else
+        | false -> 
             let numMatch = List.tryFind (fun ((numString:string), _) -> remainingString.StartsWith numString) numsList
             match numMatch with 
             | Some (numString, numVal) -> 
                 yield numVal
-                let testsub = (remainingString.Substring (numString.Length - 1))
                 yield! BuildNumSeq_NameAndDigit (remainingString.Substring (numString.Length - 1))
             | None ->
-                yield! BuildNumSeq_NameAndDigit (remainingString.Substring 1)
+                yield! BuildNumSeq_NameAndDigit (remainingString.Substring 1)       
 }
 
 let CalibrationSum input amendedFunction = 
@@ -46,10 +46,9 @@ let CalibrationSum input amendedFunction =
         let intList = 
             amendedFunction amendedCalibration
             |> Seq.toList
-        if List.isEmpty intList then
-            0
-        else
-            (10 * (List.head intList)) + (List.last intList))
+        match List.isEmpty intList with
+        | true -> 0
+        | false -> (10 * (List.head intList)) + (List.last intList))           
     |> List.sum
 
 let Part1 input = 
