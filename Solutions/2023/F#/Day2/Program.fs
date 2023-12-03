@@ -39,46 +39,59 @@ let ParseInput filepath =
         {Game.Number = gameNum; Grabs = grabAmounts})
     |> Seq.toList
 
+let BuildGameColorMap game baseMap = 
+    game.Grabs
+    |> List.fold (fun grabAcc nextGrab -> 
+        nextGrab.Balls
+        |> List.fold (fun colorAcc (nextColorName, nextColorNum) ->
+            match Map.tryFind nextColorName colorAcc with 
+            | Some prevMax -> Map.add nextColorName (max prevMax nextColorNum) colorAcc
+            | None -> Map.add nextColorName nextColorNum colorAcc
+        ) grabAcc
+    ) baseMap
 
-let Storage input = 
-    let buildMaxBallDict (gameList: Game list) = 
-        gameList
-        |> List.fold (fun (acc:Map<string,int>) nextGame -> 
-            nextGame.Grabs
-            |> List.fold (fun innerAcc nextGrab -> 
-                nextGrab.Balls
-                |> List.fold (fun innerInnerAcc (nextColorName, nextColorNum) ->
-                    match Map.tryFind nextColorName innerInnerAcc with 
-                    | Some prevMax -> Map.add nextColorName (max prevMax nextColorNum) innerInnerAcc
-                    | None -> Map.add nextColorName nextColorNum innerInnerAcc
-                ) innerAcc
-            ) acc
-        ) Map.empty
+let Part1 input = 
+    let validGame game = 
+        let validColorNumList = [
+            ("red", 12)
+            ("green", 13)
+            ("blue", 14)
+        ]
+        let gameMap = BuildGameColorMap game Map.empty
 
-    let maxDict = buildMaxBallDict input
-    ()
+        match List.tryFind (fun (colorName, colorNum) -> not (gameMap[colorName] <= colorNum)) validColorNumList with
+        | Some _ -> false
+        | None -> true
 
+    input
+    |> List.filter validGame
+    |> List.map (fun game -> game.Number)
+    |> List.sum
 
-let Part1 (input: Game list) = 
-    let possibleGames = [
-        ("red", 12)
-        ("green", 13)
-        ("blue", 14)
-    ]
+let Part2 input = 
+    input
+    |> List.map (fun game -> 
+        let powerColorList = [
+            ("red")
+            ("green")
+            ("blue")
+        ]
+        let baseMap = 
+            powerColorList
+            |> List.map (fun color -> (color, 0))
+            |> Map.ofList
+        let gameMap = BuildGameColorMap game baseMap
 
-    
-
-
-
-    0
-
-
+        powerColorList
+        |> List.fold (fun powerAcc nextColor ->
+            powerAcc * gameMap[nextColor]) 1)
+    |> List.sum
 
 [<EntryPoint>]
 let main _ =
     let input = ParseInput("Input.txt")
-    //let part1Result = Part1 input
-    //printfn "Part 1 Result: %d" part1Result // 
-    //let part2Result = Part2 input
-    //printfn "Part 2 Result: %d" part2Result // 
+    let part1Result = Part1 input
+    printfn "Part 1 Result: %d" part1Result // 3035
+    let part2Result = Part2 input
+    printfn "Part 2 Result: %d" part2Result // 66027
     0
