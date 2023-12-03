@@ -1,4 +1,5 @@
-open System
+module <>
+
 open System.IO
 
 let ParseInput filepath = 
