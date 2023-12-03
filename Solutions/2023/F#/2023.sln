@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Day1", "Day1\Day1.fsproj", "{D881F7AA-CA98-4C8B-8B10-2406C1B99F25}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EE333791-A97D-4DB2-8AAE-E575E4CC7E1C}"
+	ProjectSection(SolutionItems) = preProject
+		BaseProgram.txt = BaseProgram.txt
+		BaseTests.txt = BaseTests.txt
+	EndProjectSection
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Day1-Tests", "Day1-Tests\Day1-Tests.fsproj", "{03450015-74BD-460C-B8D7-F4AE6F93EAF0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D881F7AA-CA98-4C8B-8B10-2406C1B99F25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D881F7AA-CA98-4C8B-8B10-2406C1B99F25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D881F7AA-CA98-4C8B-8B10-2406C1B99F25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D881F7AA-CA98-4C8B-8B10-2406C1B99F25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03450015-74BD-460C-B8D7-F4AE6F93EAF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03450015-74BD-460C-B8D7-F4AE6F93EAF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03450015-74BD-460C-B8D7-F4AE6F93EAF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03450015-74BD-460C-B8D7-F4AE6F93EAF0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8864F76C-2701-49E4-8E6A-1051ACF3A854}
+	EndGlobalSection
+EndGlobal
