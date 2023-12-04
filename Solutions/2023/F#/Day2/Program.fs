@@ -18,10 +18,10 @@ let ParseInput filepath =
         let gameRegex = Regex(@"Game (\d+):")
         let gameMatch = gameRegex.Match line
         let gameNum = (int gameMatch.Groups.[1].Value)
-        let remainingString = line.Substring gameMatch.Value.Length
+        let remainingLine = line.Substring gameMatch.Value.Length
 
         let grabRegex = Regex(@".+?(?:[;]|$)")
-        let grabMatches = grabRegex.Matches remainingString
+        let grabMatches = grabRegex.Matches remainingLine
 
         let grabAmounts = 
             grabMatches
