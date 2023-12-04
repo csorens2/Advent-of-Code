@@ -82,9 +82,7 @@ let Part2 input =
             |> Map.ofList
         let gameMap = BuildGameColorMap game baseMap
 
-        powerColorList
-        |> List.fold (fun powerAcc nextColor ->
-            powerAcc * gameMap[nextColor]) 1)
+        List.fold (fun powerAcc nextColor -> powerAcc * gameMap[nextColor]) 1 powerColorList)
     |> List.sum
 
 [<EntryPoint>]
