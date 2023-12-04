@@ -35,7 +35,7 @@ let NumPlayerWinningNumbers card =
     |> Set.filter (fun nextPlayerNum -> Set.contains nextPlayerNum card.WinningNumbers)
     |> Set.count
 
-let Part1 (input: Map<int, Card>) = 
+let Part1 input = 
     input
     |> Map.map (fun _ card -> 
         let numPlayerWinners = NumPlayerWinningNumbers card
@@ -44,8 +44,8 @@ let Part1 (input: Map<int, Card>) =
         | _ -> int (2.0 ** ((float numPlayerWinners) - 1.0)))
     |> Map.fold (fun scoreAcc _ cardScore -> scoreAcc + cardScore) 0
 
-let Part2 (input: Map<int, Card>) = 
-    let rec scratchTickets (cardAmounts: Map<int, int>) (currCard: int) = 
+let Part2 input = 
+    let rec scratchTickets (currCard: int) (cardAmounts: Map<int, int>) = 
         match Map.containsKey currCard input with
         | false -> cardAmounts
         | true ->
@@ -54,18 +54,26 @@ let Part2 (input: Map<int, Card>) =
                 match Map.tryFind currCard cardAmounts with
                 | Some cardAmount -> cardAmount
                 | None -> 0
+            let nextCardAmounts = Map.add currCard currCardCount cardAmounts
             let numPlayerWinners = NumPlayerWinningNumbers input[currCard]
+            match numPlayerWinners with
+            | 0 -> scratchTickets (currCard + 1) nextCardAmounts
+            | _ ->
+                [(currCard + 1) .. (currCard + numPlayerWinners)]
+                |> List.fold (fun nextCardAmountsAcc childCard -> 
+                    match Map.tryFind childCard nextCardAmountsAcc with
+                    | Some childCardCount -> Map.add childCard (childCardCount + currCardCount) nextCardAmountsAcc
+                    | None -> Map.add childCard currCardCount nextCardAmountsAcc) nextCardAmounts
+                |> scratchTickets (currCard + 1)
 
-    
-
-
-    0
+    scratchTickets 1 Map.empty
+    |> Map.fold (fun cardAmountAcc _ cardAmount -> cardAmountAcc + cardAmount) 0
 
 [<EntryPoint>]
 let main _ =
     let input = ParseInput("Input.txt")
     let part1Result = Part1 input
     printfn "Part 1 Result: %d" part1Result // 26914
-    //let part2Result = Part2 input
-    //printfn "Part 2 Result: %d" part2Result // 
+    let part2Result = Part2 input
+    printfn "Part 2 Result: %d" part2Result // 13080971
     0
