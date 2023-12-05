@@ -45,7 +45,7 @@ let Part1 input =
     |> Map.fold (fun scoreAcc _ cardScore -> scoreAcc + cardScore) 0
 
 let Part2 input = 
-    let rec scratchTickets (currCard: int) (cardAmounts: Map<int, int>) = 
+    let rec scratchTickets currCard cardAmounts = 
         match Map.containsKey currCard input with
         | false -> cardAmounts
         | true ->
