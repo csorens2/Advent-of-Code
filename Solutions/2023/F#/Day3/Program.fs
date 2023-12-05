@@ -18,6 +18,7 @@ type Symbol = {
 
 let ParseInput filepath = 
     let rec recParseLine engineParts symbols enginePart remainingLine currCoordinate = 
+
         let nextChar = if String.IsNullOrEmpty remainingLine then None else Some remainingLine[0]
             
         let nextEngineParts = 
@@ -42,7 +43,7 @@ let ParseInput filepath =
         let nextSymbols = 
             match nextChar with 
             | None -> symbols
-            | Some _ when System.Char.IsDigit nextChar.Value -> symbols
+            | Some nextCharValue when System.Char.IsDigit nextCharValue -> symbols
             | Some nextCharValue when nextCharValue = '.' -> symbols
             | Some nextCharValue -> {Symbol.Value = nextCharValue; Coordinate = currCoordinate} :: symbols
                     
@@ -70,9 +71,8 @@ let GetSurroundingCoordinates centerCoordinates =
     centerCoordinates
     |> List.map (fun centerCoordinate -> GetSurroundingCoordinates_SinglePoint centerCoordinate)
     |> List.collect (id)
-    |> List.filter (fun coordinate -> not (List.contains coordinate centerCoordinates))
     |> Set.ofList
-
+    |> Set.filter (fun coordinate -> not (List.contains coordinate centerCoordinates))
 
 let Part1 input = 
     let validateEnginePart part symbols = 
@@ -81,12 +81,10 @@ let Part1 input =
         let symbolCoordinates = List.map (fun symbol -> symbol.Coordinate) symbols
 
         symbolCoordinates
-        |> List.tryFind (fun symbolCoordinate -> 
-            Set.contains symbolCoordinate partSurroundingCoordinates)
+        |> List.tryFind (fun symbolCoordinate -> Set.contains symbolCoordinate partSurroundingCoordinates)
         |> Option.isSome
         
     let (partsList, symbolsList) = input
-
     partsList
     |> List.filter (fun part -> validateEnginePart part symbolsList)
     |> List.map (fun part -> part.PartNumber)
@@ -100,9 +98,7 @@ let Part2 input =
         |> List.filter (fun symbol -> symbol.Value = '*')
         |> List.map (fun symbol -> symbol.Coordinate)
 
-    let partsWithSurroundingCoords = 
-        partsList
-        |> List.map (fun part -> (part.PartNumber, GetSurroundingCoordinates part.Coordinates))
+    let partsWithSurroundingCoords = List.map (fun part -> (part.PartNumber, GetSurroundingCoordinates part.Coordinates)) partsList
 
     gearCoordinates
     |> List.map (fun gearCoordinate -> 
@@ -110,10 +106,9 @@ let Part2 input =
             partsWithSurroundingCoords
             |> List.filter (fun (_, surroundingCoords) -> Set.contains gearCoordinate surroundingCoords)
             |> List.map (fun (partNum, _) -> partNum)
-        if List.length adjacentParts = 2 then
-            adjacentParts[0] * adjacentParts[1]
-        else
-            0)
+        match List.length adjacentParts with 
+        | 2 -> adjacentParts[0] * adjacentParts[1]
+        | _ -> 0)
     |> List.sum
 
 [<EntryPoint>]
