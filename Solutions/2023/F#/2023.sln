@@ -8,22 +8,26 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EE333791-A97D-4DB2-8AAE-E575E4CC7E1C}"
 	ProjectSection(SolutionItems) = preProject
 		BaseProgram.txt = BaseProgram.txt
-		BaseTests.txt = BaseTests.txt
 	EndProjectSection
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Day1-Tests", "Day1-Tests\Day1-Tests.fsproj", "{03450015-74BD-460C-B8D7-F4AE6F93EAF0}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Day1-Tests", "Tests\Day1-Tests\Day1-Tests.fsproj", "{03450015-74BD-460C-B8D7-F4AE6F93EAF0}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Day2", "Day2\Day2.fsproj", "{332EE57D-4781-4DD6-81E5-7B30DB96CE93}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Day2-Tests", "Day2-Tests\Day2-Tests.fsproj", "{CD2BAACE-01E5-4F0B-A911-CAECB605DAA4}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Day2-Tests", "Tests\Day2-Tests\Day2-Tests.fsproj", "{CD2BAACE-01E5-4F0B-A911-CAECB605DAA4}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Day4", "Day4\Day4.fsproj", "{6CE2D2C4-64CA-44FC-97AF-B54A39E88DE9}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Day4-Tests", "Day4-Tests\Day4-Tests.fsproj", "{E51C8043-AA6F-45EE-A6B3-4402B2736912}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Day4-Tests", "Tests\Day4-Tests\Day4-Tests.fsproj", "{E51C8043-AA6F-45EE-A6B3-4402B2736912}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Day3", "Day3\Day3.fsproj", "{FB5D52B1-B42C-4329-80D3-BB618D45085D}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Day3", "Day3\Day3.fsproj", "{FB5D52B1-B42C-4329-80D3-BB618D45085D}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Day3-Tests", "Day3-Tests\Day3-Tests.fsproj", "{517D0520-FE33-4DB5-A0F0-08B472D68ED1}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Day3-Tests", "Tests\Day3-Tests\Day3-Tests.fsproj", "{517D0520-FE33-4DB5-A0F0-08B472D68ED1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{27414268-C81E-4D8F-9248-F2FB71E4B215}"
+	ProjectSection(SolutionItems) = preProject
+		Tests\BaseTests.txt = Tests\BaseTests.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -66,6 +70,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{03450015-74BD-460C-B8D7-F4AE6F93EAF0} = {27414268-C81E-4D8F-9248-F2FB71E4B215}
+		{CD2BAACE-01E5-4F0B-A911-CAECB605DAA4} = {27414268-C81E-4D8F-9248-F2FB71E4B215}
+		{E51C8043-AA6F-45EE-A6B3-4402B2736912} = {27414268-C81E-4D8F-9248-F2FB71E4B215}
+		{517D0520-FE33-4DB5-A0F0-08B472D68ED1} = {27414268-C81E-4D8F-9248-F2FB71E4B215}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8864F76C-2701-49E4-8E6A-1051ACF3A854}

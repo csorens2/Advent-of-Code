@@ -39,7 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Day3\Day3.fsproj" />
+    <ProjectReference Include="..\..\Day3\Day3.fsproj" />
   </ItemGroup>
 
 </Project>
