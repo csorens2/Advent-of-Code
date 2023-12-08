@@ -2,7 +2,6 @@ module Tests
 
 open Day5
 open Xunit
-open System
 
 [<Fact>]
 let ``RangesOverlap Returns True for Overlapping Ranges`` () = 

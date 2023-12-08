@@ -86,13 +86,11 @@ let RangesOverlap (start1, range1) (start2, range2) =
         
 let MapSeedRange mapEntries toMap = 
     let rec recGetSeedRanges remainingSeed = seq {
-        if remainingSeed.Range > 0 then
-            match List.tryFind (fun mapEntry -> 
-                RangesOverlap (remainingSeed.Start, remainingSeed.Range) (mapEntry.SourceStart, mapEntry.Range)) mapEntries with
+        match List.tryFind (fun mapEntry -> RangesOverlap (remainingSeed.Start, remainingSeed.Range) (mapEntry.SourceStart, mapEntry.Range)) mapEntries with
             | None -> yield remainingSeed
             | Some mapEntry ->
                 // The trick is: we only destination shift the SeedRange when the everything starting from the Seed's start is covered by the map
-                // When there is a piece of the range on the left that is not covered, we split that off, the recurse further. 
+                // When there is a piece of the range on the left that is not covered, we split that off, then recurse further. 
                 match mapEntry.SourceStart <= remainingSeed.Start with
                 | true -> 
                     let startDiff = remainingSeed.Start - mapEntry.SourceStart
@@ -103,15 +101,16 @@ let MapSeedRange mapEntries toMap =
                     let rightSeed = {SeedRange.Start = remainingSeed.Start + shiftedMapRange; Range = remainingSeed.Range - leftSeedRange}
 
                     yield leftSeed
-                    yield! recGetSeedRanges rightSeed
+                    if rightSeed.Range > 0 then
+                        yield! recGetSeedRanges rightSeed
                 | false -> 
                     let startDiff = mapEntry.SourceStart - remainingSeed.Start
                     let leftSeed = {SeedRange.Start = remainingSeed.Start; Range = startDiff}
                     let rightSeed = {SeedRange.Start = mapEntry.SourceStart; Range = remainingSeed.Range - startDiff}
-                    let test = rightSeed
                     
                     yield! recGetSeedRanges leftSeed
-                    yield! recGetSeedRanges rightSeed            
+                    if rightSeed.Range > 0 then
+                        yield! recGetSeedRanges rightSeed           
     }
     
     recGetSeedRanges toMap
@@ -138,7 +137,7 @@ let GetMinimumSeed almanacMap initialCatagory seedRanges =
 
 let Part1 input = 
     let (seeds, almanacMap) = input
-    // We can unify the solution for the two parts to reframe Part1 as using SeedRanges all of range 1
+    // We can unify the solution for the two parts by reframing Part1 as using SeedRanges all of range 1
     seeds
     |> List.map (fun seedNum -> {SeedRange.Start = seedNum; Range = 1L})
     |> GetMinimumSeed almanacMap "seed"
