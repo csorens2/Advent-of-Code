@@ -32,7 +32,7 @@ let ParseInput filepath =
 /// 1. Binary searching for the minimum hold-time necessary between 0 and the midpoint to beat the record. 
 /// 
 /// 2. Get the difference between this minimum and the midpoint, and multiply it by two to handle both sides.
-let GetRecordBreakingHoldVariations (race: Race) = 
+let GetRecordBreakingHoldVariations race = 
     let rec findMinimumHoldTime leftBound rightBound : int64 option = 
         let midPoint = (leftBound + rightBound) / 2L
         let midPointDistance = ((race.Time - midPoint) * midPoint)
@@ -52,10 +52,12 @@ let GetRecordBreakingHoldVariations (race: Race) =
     match findMinimumHoldTime 0L peakHoldTime with 
     | None -> 0L
     | Some minHoldTime -> 
-        let nonPeakVariants = (peakHoldTime - minHoldTime) * 2L   
-        match race.Time % 2L = 0L with 
-        | true -> nonPeakVariants + 1L
-        | false -> nonPeakVariants + 2L
+        // Depending on whether the total race time is even or not, we may have two concurrent peak hold-times or one
+        let peaks = 
+            match race.Time % 2L = 0L with 
+            | true -> 1L
+            | false -> 2L
+        ((peakHoldTime - minHoldTime) * 2L) + peaks
 
 let Part1 input =     
     input
@@ -63,7 +65,7 @@ let Part1 input =
     |> List.map (fun race -> GetRecordBreakingHoldVariations race)
     |> List.fold (fun acc winningMethods -> acc * winningMethods) 1L
     
-let Part2 (input: (string*string) list) = 
+let Part2 input = 
     let (raceTimeString, raceDistanceString) =
         input
         |> List.fold (fun (timeAcc, distanceAcc) (nextTime, nextDistance) -> (timeAcc + nextTime, distanceAcc + nextDistance)) (String.Empty, String.Empty)
