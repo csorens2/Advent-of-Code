@@ -6,8 +6,8 @@ open System.Text.RegularExpressions
 
 type MapEntry = {
     SourceStart: int64
-    DestinationStart: int64
     Range: int64
+    DestinationStart: int64
 }
 
 type AlmanacEntry = {
@@ -16,8 +16,13 @@ type AlmanacEntry = {
     MapEntries: MapEntry list
 }
 
+type SeedRange = {
+    Start: int64
+    Range: int64
+}
+
 let ParseInput filepath = 
-    let sourceDestinationRegex = Regex(@"(\w+)-to-(\w+)")        
+    let sourceDestinationRegex = Regex(@"(\w+)-to-(\w+)")
     let rec splitAlmanacEntryLines remainingLines = seq {
         if not (List.isEmpty remainingLines) then
             let almanacEntry = List.takeWhile (fun line -> not (String.IsNullOrEmpty line)) remainingLines
@@ -28,7 +33,7 @@ let ParseInput filepath =
                 |> List.skipWhile (fun line -> not (sourceDestinationRegex.IsMatch line))
             yield! splitAlmanacEntryLines nextRemainingLines
     }
-    let extractNextAlmanacEntry lines = 
+    let buildAlmanacEntry lines = 
         let sourceDestinationMatch = sourceDestinationRegex.Match (List.item 0 lines)
         let mapEntryRegex = Regex(@"(\d+) (\d+) (\d+)")
         let mapEntries = 
@@ -58,42 +63,103 @@ let ParseInput filepath =
 
     let almanacMap = 
         splitAlmanacEntryLines almanacEntryLines
-        |> Seq.map extractNextAlmanacEntry
-        |> Seq.fold (fun (almanacAcc: Map<string,AlmanacEntry>) nextAlmanacEntry -> 
+        |> Seq.map buildAlmanacEntry
+        |> Seq.fold (fun almanacAcc nextAlmanacEntry -> 
             Map.add nextAlmanacEntry.Source nextAlmanacEntry almanacAcc) Map.empty
 
     (seeds, almanacMap)
 
-let MapNumber almanacEntry num = 
-    let matchEntry mapEntry num = 
-        let source = mapEntry.SourceStart
-        source <= num && num <= (source + mapEntry.Range)
-    let mapNumber mapEntry num = 
-        if matchEntry mapEntry num then
-            let diff = num - mapEntry.SourceStart
-            mapEntry.DestinationStart + diff
-        else
-            num
-    match List.tryFind (fun mapEntry -> matchEntry mapEntry num) almanacEntry.MapEntries with
-    | None -> num
-    | Some mapEntry -> mapNumber mapEntry num
+
+let RangesOverlap (start1, range1) (start2, range2) = 
+    if range1 = 0L || range2 = 0L then
+        failwith "Comparing ranges of length 0"
+    else
+        let shiftedRange = 
+            if start1 < start2 then
+                range1 - (start2 - start1)
+            else
+                range2 - (start1 - start2)
+        if shiftedRange > 0L then
+            true
+        else 
+            false
+        
+let MapSeedRange mapEntries toMap = 
+    let rec recGetSeedRanges remainingSeed = seq {
+        if remainingSeed.Range > 0 then
+            match List.tryFind (fun mapEntry -> 
+                RangesOverlap (remainingSeed.Start, remainingSeed.Range) (mapEntry.SourceStart, mapEntry.Range)) mapEntries with
+            | None -> yield remainingSeed
+            | Some mapEntry ->
+                // The trick is: we only destination shift the SeedRange when the everything starting from the Seed's start is covered by the map
+                // When there is a piece of the range on the left that is not covered, we split that off, the recurse further. 
+                match mapEntry.SourceStart <= remainingSeed.Start with
+                | true -> 
+                    let startDiff = remainingSeed.Start - mapEntry.SourceStart
+                    let shiftedMapRange = mapEntry.Range - startDiff
+
+                    let leftSeedRange = min remainingSeed.Range shiftedMapRange
+                    let leftSeed = {SeedRange.Start = mapEntry.DestinationStart + startDiff; SeedRange.Range = leftSeedRange}
+                    let rightSeed = {SeedRange.Start = remainingSeed.Start + shiftedMapRange; Range = remainingSeed.Range - leftSeedRange}
+
+                    yield leftSeed
+                    yield! recGetSeedRanges rightSeed
+                | false -> 
+                    let startDiff = mapEntry.SourceStart - remainingSeed.Start
+                    let leftSeed = {SeedRange.Start = remainingSeed.Start; Range = startDiff}
+                    let rightSeed = {SeedRange.Start = mapEntry.SourceStart; Range = remainingSeed.Range - startDiff}
+                    let test = rightSeed
+                    
+                    yield! recGetSeedRanges leftSeed
+                    yield! recGetSeedRanges rightSeed            
+    }
+    
+    recGetSeedRanges toMap
+    |> Seq.toList
+
+
+let GetMinimumSeed almanacMap initialCatagory seedRanges = 
+    let rec resolveChain currCatagory seedRanges = 
+        match Map.tryFind currCatagory almanacMap with
+        | None -> seedRanges
+        | Some almanacEntry ->
+            let nextSeedRanges = 
+                seedRanges
+                |> List.map (MapSeedRange almanacEntry.MapEntries)
+                |> List.collect id
+            resolveChain almanacEntry.Destination nextSeedRanges
+
+    let minSeedRange = 
+        seedRanges
+        |> Seq.toList
+        |> resolveChain initialCatagory
+        |> List.minBy (fun seedRange -> seedRange.Start)
+    minSeedRange.Start
 
 let Part1 input = 
-    let rec resolveChain almanacMap currCategory currNum = 
-        match Map.tryFind currCategory almanacMap with 
-        | None -> currNum
-        | Some almanacEntry -> resolveChain almanacMap almanacEntry.Destination (MapNumber almanacEntry currNum)
+    let (seeds, almanacMap) = input
+    // We can unify the solution for the two parts to reframe Part1 as using SeedRanges all of range 1
+    seeds
+    |> List.map (fun seedNum -> {SeedRange.Start = seedNum; Range = 1L})
+    |> GetMinimumSeed almanacMap "seed"
+
+let Part2 input = 
+    let rec buildSeedRanges remainingNums = seq {
+        if not (List.isEmpty remainingNums) then
+            yield {SeedRange.Start = List.item 0 remainingNums; Range = List.item 1 remainingNums}
+            yield! buildSeedRanges (List.skip 2 remainingNums)
+    } 
 
     let (seeds, almanacMap) = input
-    seeds
-    |> List.map (fun seedNum -> resolveChain almanacMap "seed" seedNum)
-    |> List.min
+    buildSeedRanges seeds
+    |> Seq.toList
+    |> GetMinimumSeed almanacMap "seed"
 
 [<EntryPoint>]
 let main _ =
     let input = ParseInput("Input.txt")
     let part1Result = Part1 input
     printfn "Part 1 Result: %d" part1Result // 227653707
-    //let part2Result = Part2 input
-    //printfn "Part 2 Result: %d" part2Result // 
+    let part2Result = Part2 input
+    printfn "Part 2 Result: %d" part2Result // 78775051
     0
