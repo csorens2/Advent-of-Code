@@ -1,4 +1,4 @@
-module <>
+﻿module Day8
 
 open System.IO
 

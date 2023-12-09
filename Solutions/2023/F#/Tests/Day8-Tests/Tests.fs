@@ -1,12 +1,17 @@
 module Tests
 
 open Xunit
-open <>
+open Day8
 
 [<Fact>]
-let ``Part1 Example Test`` () = 
-    let input = ParseInput("ExamplePart1.txt")
-    Assert.Equal(, Part1 input)
+let ``Part1-1 Example Test`` () = 
+    let input = ParseInput("ExamplePart1-1.txt")
+    Assert.Equal(2, Part1 input)
+
+[<Fact>]
+let ``Part1-2 Example Test`` () = 
+    let input = ParseInput("ExamplePart1-2.txt")
+    Assert.Equal(6, Part1 input)
 
 [<Fact>]
 let ``Part1 Input Test`` () = 
