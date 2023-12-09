@@ -3,7 +3,6 @@
 open System.IO
 open System.Text.RegularExpressions
 
-// Number indicates it's strength rank
 type CardType = 
     | Ace = 1
     | King = 2
@@ -20,7 +19,6 @@ type CardType =
     | Two = 13
     | Joker = 14
 
-// Number indicates it's strength rank
 type HandType = 
     | FiveOfAKind = 1
     | FourOfAKind = 2
@@ -45,7 +43,6 @@ let ParseInput filepath =
     |> Seq.toList
 
 let GetHandType toProcess = 
-
     let cardCount = 
         toProcess.Cards
         |> List.fold (fun cardMap nextCard ->
@@ -112,8 +109,7 @@ let GetHandType toProcess =
                 HandType.ThreeOfAKind
             else
                 HandType.Pair
-
-    
+        | _ -> failwith "Invalid number of jokers"
 
 let CompareHands hand1 hand2 = 
     let hand1Type = GetHandType hand1
@@ -131,14 +127,12 @@ let CompareHands hand1 hand2 =
         compareCardPairs (List.zip hand1.Cards hand2.Cards)
     | handTypeDiff -> handTypeDiff 
 
-let Part1 (input: (string*int) list) = 
+let CalculateWinnings rawHands jCharCardType = 
     let cardCharMap = 
         [
             ('A', CardType.Ace)
             ('K', CardType.King)
             ('Q', CardType.Queen)
-
-            ('J', CardType.Jack)
 
             ('T', CardType.Ten)
             ('9', CardType.Nine)
@@ -151,50 +145,25 @@ let Part1 (input: (string*int) list) =
             ('2', CardType.Two)
         ]
         |> Map.ofList
+        |> Map.add 'J' jCharCardType
 
-    input
+    rawHands
     |> List.map (fun (handString, bid) ->
         let cardList = 
             handString
-            |> Seq.map (fun handChar -> cardCharMap[handChar])
+            |> Seq.map (fun handChar -> Map.find handChar cardCharMap)
             |> Seq.toList
         {Hand.Cards = cardList; Bid = bid})
     |> List.sortWith (fun hand1 hand2 -> -1 * (CompareHands hand1 hand2))
     |> List.indexed
     |> List.map (fun (index, hand) -> (index + 1, hand))
     |> List.fold (fun totalWinnings (rank, hand) -> totalWinnings + (rank * hand.Bid)) 0 
+
+let Part1 input = 
+    CalculateWinnings input CardType.Jack
 
 let Part2 input = 
-    let cardCharMap = 
-        [
-            ('A', CardType.Ace)
-            ('K', CardType.King)
-            ('Q', CardType.Queen)
-
-            ('J', CardType.Joker)
-
-            ('T', CardType.Ten)
-            ('9', CardType.Nine)
-            ('8', CardType.Eight)
-            ('7', CardType.Seven)
-            ('6', CardType.Six)
-            ('5', CardType.Five)
-            ('4', CardType.Four)
-            ('3', CardType.Three)
-            ('2', CardType.Two)
-        ]
-        |> Map.ofList
-    input
-    |> List.map (fun (handString, bid) ->
-        let cardList = 
-            handString
-            |> Seq.map (fun handChar -> cardCharMap[handChar])
-            |> Seq.toList
-        {Hand.Cards = cardList; Bid = bid})
-    |> List.sortWith (fun hand1 hand2 -> -1 * (CompareHands hand1 hand2))
-    |> List.indexed
-    |> List.map (fun (index, hand) -> (index + 1, hand))
-    |> List.fold (fun totalWinnings (rank, hand) -> totalWinnings + (rank * hand.Bid)) 0 
+    CalculateWinnings input CardType.Joker
 
 [<EntryPoint>]
 let main _ =

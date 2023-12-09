@@ -17,7 +17,41 @@ let ``GetHandType returns correct HandType`` () =
             ({baseHand with Cards = [CardType.Ace; CardType.King; CardType.Queen; CardType.Jack; CardType.Ten]}, HandType.HighCard)
         ], nameof testCases_Jacks)
 
-    let testCases = [testCases_Jacks]
+    let rec testCases_Jokers_FiveOf = 
+        ([
+            ({baseHand with Cards = [CardType.Joker; CardType.Joker; CardType.Joker; CardType.Joker; CardType.Joker]}, HandType.FiveOfAKind)
+            ({baseHand with Cards = [CardType.Ace; CardType.Joker; CardType.Joker; CardType.Joker; CardType.Joker]}, HandType.FiveOfAKind)
+            ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.Joker; CardType.Joker; CardType.Joker]}, HandType.FiveOfAKind)
+            ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.Ace; CardType.Joker; CardType.Joker]}, HandType.FiveOfAKind)
+            ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.Ace; CardType.Ace; CardType.Joker]}, HandType.FiveOfAKind)
+        ], nameof testCases_Jokers_FiveOf)
+    let rec testCases_Jokers_FourOf = 
+        ([
+            ({baseHand with Cards = [CardType.Ace; CardType.King; CardType.Joker; CardType.Joker; CardType.Joker]}, HandType.FourOfAKind)
+            ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.King; CardType.Joker; CardType.Joker]}, HandType.FourOfAKind)
+            ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.Ace; CardType.King; CardType.Joker]}, HandType.FourOfAKind)
+        ], nameof testCases_Jokers_FourOf)
+    let rec testCases_Jokers_ThreeOf = 
+        ([
+            ({baseHand with Cards = [CardType.Ace; CardType.King; CardType.Queen; CardType.Joker; CardType.Joker]}, HandType.ThreeOfAKind)
+            ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.King; CardType.Queen; CardType.Joker]}, HandType.ThreeOfAKind)
+        ], nameof testCases_Jokers_ThreeOf)
+    let rec testCases_Jokers_FullHouse = 
+        ([
+            ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.King; CardType.King; CardType.Joker]}, HandType.FullHouse)
+        ], nameof testCases_Jokers_FullHouse)
+    let rec testCases_Jokers_Pair = 
+        ([
+            ({baseHand with Cards = [CardType.Ace; CardType.King; CardType.Queen; CardType.Ten; CardType.Joker]}, HandType.Pair)
+        ], nameof testCases_Jokers_Pair)
+    let testCases = [
+        testCases_Jacks
+        testCases_Jokers_FiveOf
+        testCases_Jokers_FourOf
+        testCases_Jokers_ThreeOf
+        testCases_Jokers_FullHouse
+        testCases_Jokers_Pair
+    ]
 
     for (testCase, testName) in testCases do
         for (testHand, expectedHandType) in testCase do
