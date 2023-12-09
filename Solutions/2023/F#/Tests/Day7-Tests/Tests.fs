@@ -44,6 +44,7 @@ let ``GetHandType returns correct HandType`` () =
         ([
             ({baseHand with Cards = [CardType.Ace; CardType.King; CardType.Queen; CardType.Ten; CardType.Joker]}, HandType.Pair)
         ], nameof testCases_Jokers_Pair)
+
     let testCases = [
         testCases_Jacks
         testCases_Jokers_FiveOf
@@ -52,7 +53,6 @@ let ``GetHandType returns correct HandType`` () =
         testCases_Jokers_FullHouse
         testCases_Jokers_Pair
     ]
-
     for (testCase, testName) in testCases do
         for (testHand, expectedHandType) in testCase do
             let actualHandType = GetHandType testHand

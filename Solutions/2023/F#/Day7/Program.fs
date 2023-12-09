@@ -29,7 +29,7 @@ type HandType =
     | HighCard = 7
 
 type Hand = {
-    Cards: CardType list
+    Cards: seq<CardType>
     Bid: int
 }
 
@@ -40,12 +40,11 @@ let ParseInput filepath =
         let handCards = lineMatch.Groups.[1].Value
         let bid = int lineMatch.Groups.[2].Value
         (handCards, bid))
-    |> Seq.toList
 
 let GetHandType toProcess = 
     let cardCount = 
         toProcess.Cards
-        |> List.fold (fun cardMap nextCard ->
+        |> Seq.fold (fun cardMap nextCard ->
             match Map.tryFind nextCard cardMap with 
             | None -> Map.add nextCard 1 cardMap
             | Some prevCount -> Map.add nextCard (1 + prevCount) cardMap) Map.empty
@@ -116,15 +115,9 @@ let CompareHands hand1 hand2 =
     let hand2Type = GetHandType hand2
     match compare hand1Type hand2Type with 
     | 0 -> 
-        let rec compareCardPairs (remainingCardPairs: (CardType*CardType) list) = 
-            match List.isEmpty remainingCardPairs with 
-            | true -> 0
-            | false -> 
-                let (card1, card2) = List.head remainingCardPairs
-                match compare card1 card2 with 
-                | 0 -> compareCardPairs (List.tail remainingCardPairs)
-                | cardTypeDiff -> cardTypeDiff
-        compareCardPairs (List.zip hand1.Cards hand2.Cards)
+        match Seq.tryFind (fun (card1Type, card2Type) -> not (card1Type = card2Type)) (Seq.zip hand1.Cards hand2.Cards) with 
+        | None -> 0
+        | Some (card1Type, card2Type) -> compare card1Type card2Type
     | handTypeDiff -> handTypeDiff 
 
 let CalculateWinnings rawHands jCharCardType = 
@@ -148,16 +141,15 @@ let CalculateWinnings rawHands jCharCardType =
         |> Map.add 'J' jCharCardType
 
     rawHands
-    |> List.map (fun (handString, bid) ->
-        let cardList = 
+    |> Seq.map (fun (handString, bid) ->
+        let cardSeq = 
             handString
             |> Seq.map (fun handChar -> Map.find handChar cardCharMap)
-            |> Seq.toList
-        {Hand.Cards = cardList; Bid = bid})
-    |> List.sortWith (fun hand1 hand2 -> -1 * (CompareHands hand1 hand2))
-    |> List.indexed
-    |> List.map (fun (index, hand) -> (index + 1, hand))
-    |> List.fold (fun totalWinnings (rank, hand) -> totalWinnings + (rank * hand.Bid)) 0 
+        {Hand.Cards = cardSeq; Bid = bid})
+    |> Seq.sortWith (fun hand1 hand2 -> -1 * (CompareHands hand1 hand2))
+    |> Seq.indexed
+    |> Seq.map (fun (index, hand) -> (index + 1, hand))
+    |> Seq.fold (fun totalWinnings (rank, hand) -> totalWinnings + (rank * hand.Bid)) 0 
 
 let Part1 input = 
     CalculateWinnings input CardType.Jack
