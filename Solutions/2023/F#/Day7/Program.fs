@@ -49,42 +49,71 @@ let GetHandType toProcess =
     let cardCount = 
         toProcess.Cards
         |> List.fold (fun cardMap nextCard ->
-            // Make sure to not count jokers
             match Map.tryFind nextCard cardMap with 
-            | Some _ when nextCard = CardType.Joker -> cardMap
             | None -> Map.add nextCard 1 cardMap
             | Some prevCount -> Map.add nextCard (1 + prevCount) cardMap) Map.empty
 
-    let cardCountValues = Map.values cardCount
+    let nonJokerCardCounts = 
+        cardCount
+        |> Seq.filter (fun kvp -> not (kvp.Key = CardType.Joker))
+        |> Seq.map (fun kvp -> kvp.Value)
 
-    let pairCount = 
-        cardCountValues
-        |> Seq.filter (fun count -> count = 2)
+    let nonJokerFiveOfExists = Option.isSome (Seq.tryFind (fun count -> count = 5) nonJokerCardCounts)
+
+    let nonJokerFourOfExists = Option.isSome (Seq.tryFind (fun count -> count = 4) nonJokerCardCounts)
+
+    let nonJokerThreeOfExists = Option.isSome (Seq.tryFind (fun count -> count = 3) nonJokerCardCounts)
+
+    let nonJokerNumPairs =
+        nonJokerCardCounts
+        |> Seq.filter (fun cardCount -> cardCount = 2)
         |> Seq.length
 
-    let tripleCount = 
-        cardCountValues
-        |> Seq.filter (fun count -> count = 3)
-        |> Seq.length
+    match Map.tryFind CardType.Joker cardCount with 
+    | None -> 
+        if nonJokerFiveOfExists then
+            HandType.FiveOfAKind
+        elif nonJokerFourOfExists then
+            HandType.FourOfAKind
+        elif nonJokerThreeOfExists && nonJokerNumPairs = 1 then
+            HandType.FullHouse
+        elif nonJokerThreeOfExists then
+            HandType.ThreeOfAKind
+        elif nonJokerNumPairs = 2 then
+            HandType.TwoPair
+        elif nonJokerNumPairs = 1 then
+            HandType.Pair
+        else 
+            HandType.HighCard
+    | Some jokerCount -> 
+        match jokerCount with 
+        | 5 -> HandType.FiveOfAKind
+        | 4 -> HandType.FiveOfAKind // All the jokers turn into the one regular card, creating a 5-Of
+        | 3 -> 
+            if nonJokerNumPairs = 1 then
+                HandType.FiveOfAKind
+            else
+                HandType.FourOfAKind
+        | 2 -> 
+            if nonJokerThreeOfExists then
+                HandType.FiveOfAKind
+            elif nonJokerNumPairs = 1 then
+                HandType.FourOfAKind
+            else
+                HandType.ThreeOfAKind
+        | 1 -> 
+            if nonJokerFourOfExists then
+                HandType.FiveOfAKind
+            elif nonJokerThreeOfExists then
+                HandType.FourOfAKind
+            elif nonJokerNumPairs = 2 then
+                HandType.FullHouse
+            elif nonJokerNumPairs = 1 then
+                HandType.ThreeOfAKind
+            else
+                HandType.Pair
 
-    let fourOfExists = Option.isSome (Seq.tryFind (fun count -> count = 4) cardCountValues)
-
-    let fiveOfExists = Option.isSome (Seq.tryFind (fun count -> count = 5) cardCountValues)
-
-    if fiveOfExists then
-        HandType.FiveOfAKind
-    elif fourOfExists then
-        HandType.FourOfAKind
-    elif tripleCount = 1 && pairCount = 1 then
-        HandType.FullHouse
-    elif tripleCount = 1 then
-        HandType.ThreeOfAKind
-    elif pairCount = 2 then
-        HandType.TwoPair
-    elif pairCount = 1 then 
-        HandType.Pair
-    else
-        HandType.HighCard
+    
 
 let CompareHands hand1 hand2 = 
     let hand1Type = GetHandType hand1
@@ -155,13 +184,23 @@ let Part2 input =
             ('2', CardType.Two)
         ]
         |> Map.ofList
-    0
+    input
+    |> List.map (fun (handString, bid) ->
+        let cardList = 
+            handString
+            |> Seq.map (fun handChar -> cardCharMap[handChar])
+            |> Seq.toList
+        {Hand.Cards = cardList; Bid = bid})
+    |> List.sortWith (fun hand1 hand2 -> -1 * (CompareHands hand1 hand2))
+    |> List.indexed
+    |> List.map (fun (index, hand) -> (index + 1, hand))
+    |> List.fold (fun totalWinnings (rank, hand) -> totalWinnings + (rank * hand.Bid)) 0 
 
 [<EntryPoint>]
 let main _ =
     let input = ParseInput("Input.txt")
     let part1Result = Part1 input
     printfn "Part 1 Result: %d" part1Result // 251216224
-    //let part2Result = Part2 input
-    //printfn "Part 2 Result: %d" part2Result // 
+    let part2Result = Part2 input
+    printfn "Part 2 Result: %d" part2Result // 250825971
     0

@@ -6,22 +6,24 @@ open Day7
 [<Fact>]
 let ``GetHandType returns correct HandType`` () = 
     let baseHand = {Hand.Cards = List.empty; Bid = 0}
-    // Yes, these technically aren't actual poker hands since only two have 5 cards. 
-    // The function should still give us the results we want even with the incomplete hands, since the rest of the cards would be irrelevant.
-    // Besides, you should be able to implement this function without taking a dependency on needing 5 cards. 
-    let testCases = 
-        [
-            ({baseHand with Cards = List.empty}, HandType.HighCard)
-            ({baseHand with Cards = [CardType.Ace; CardType.Ace]}, HandType.Pair)
-            ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.King; CardType.King]}, HandType.TwoPair)
-            ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.Ace]}, HandType.ThreeOfAKind)
-            ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.Ace; CardType.Ace]}, HandType.FourOfAKind)
+    let rec testCases_Jacks = 
+        ([
             ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.Ace; CardType.Ace; CardType.Ace]}, HandType.FiveOfAKind)
+            ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.Ace; CardType.Ace; CardType.King]}, HandType.FourOfAKind)
             ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.Ace; CardType.King; CardType.King]}, HandType.FullHouse)
-        ]
+            ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.Ace; CardType.King; CardType.Queen]}, HandType.ThreeOfAKind)
+            ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.King; CardType.King; CardType.Queen]}, HandType.TwoPair)
+            ({baseHand with Cards = [CardType.Ace; CardType.Ace; CardType.King; CardType.Queen; CardType.Jack]}, HandType.Pair)
+            ({baseHand with Cards = [CardType.Ace; CardType.King; CardType.Queen; CardType.Jack; CardType.Ten]}, HandType.HighCard)
+        ], nameof testCases_Jacks)
 
-    for (testHand, expectedHandType) in testCases do
-        Assert.Equal(expectedHandType, GetHandType testHand)
+    let testCases = [testCases_Jacks]
+
+    for (testCase, testName) in testCases do
+        for (testHand, expectedHandType) in testCase do
+            let actualHandType = GetHandType testHand
+            let testSuccess = expectedHandType = actualHandType
+            Assert.True(testSuccess, $"Test '{testName}' failed. Expected: '{expectedHandType}' Actual: '{actualHandType}'")
 
 [<Fact>]
 let ``CompareHands properly compares different HandTypes`` () = 
@@ -79,10 +81,8 @@ let ``Part1 Input Test`` () =
 let ``Part2 Example Test`` () = 
     let input = ParseInput("ExamplePart2.txt")
     Assert.Equal(5905, Part2 input)
-    Assert.Fail("Not implemented")
 
 [<Fact>]
 let ``Part2 Input Test`` () = 
     let input = ParseInput("Input.txt")
-    //Assert.Equal(, Part2 input)
-    Assert.Fail("Not implemented")
+    Assert.Equal(250825971, Part2 input)
