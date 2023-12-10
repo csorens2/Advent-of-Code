@@ -29,29 +29,28 @@ let ParseInput filepath =
         |> Seq.fold (fun mapAcc line ->
             let nodeMatch = nodeRegex.Match line
             Map.add nodeMatch.Groups.[1].Value (nodeMatch.Groups.[2].Value, nodeMatch.Groups.[3].Value) mapAcc) Map.empty
+
     (instructions, nodeMap)
 
 let Part1 input = 
     let (instructions, nodeMap) = input
+    
+    let instructionsArray = Seq.toArray instructions
 
-    let rec followInstructions instructionSeq currSteps currNode = 
+    let rec followInstructions currSteps currNode = 
         match currNode = "ZZZ" with 
         | true -> currSteps
         | false ->
             match Map.tryFind currNode nodeMap with 
             | None -> failwith $"Node '{currNode}' not in map."
             | Some (leftNextNode, rightNextNode) -> 
-                let followInstructionsPartial = followInstructions (Seq.skip 1 instructionSeq) (currSteps + 1)
-                match Seq.head instructionSeq with 
-                | Instruction.Left -> followInstructionsPartial leftNextNode
-                | Instruction.Right -> followInstructionsPartial rightNextNode
-
-    let rec instructionLoop (instructionArray: Instruction array) arrayPos = seq {
-        yield instructionArray[arrayPos]
-        yield! instructionLoop instructionArray ((arrayPos + 1) % instructionArray.Length)
-    }
-
-    followInstructions (instructionLoop (Seq.toArray instructions) 0) 0 "AAA"
+                let nextNode = 
+                    match instructionsArray[currSteps % instructionsArray.Length] with 
+                    | Instruction.Left -> leftNextNode
+                    | Instruction.Right -> rightNextNode
+                followInstructions (currSteps + 1) nextNode
+    
+    followInstructions 0 "AAA"
 
 
 let Part2 input = 
@@ -61,7 +60,7 @@ let Part2 input =
 let main _ =
     let input = ParseInput("Input.txt")
     let part1Result = Part1 input
-    printfn "Part 1 Result: %d" part1Result // 
+    printfn "Part 1 Result: %d" part1Result // 11911
     //let part2Result = Part2 input
     //printfn "Part 2 Result: %d" part2Result // 
     0
