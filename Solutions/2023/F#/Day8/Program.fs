@@ -48,7 +48,7 @@ let ParseInput filepath =
 
     (instructions, nodeMap)
 
-let GetTraversalData (instructions: seq<Instruction>) (nodeMap: Map<string, (string*string)>) startingNode (terminating) = 
+let GetTraversalData (endingNodesFunc: string -> bool) (instructions: seq<Instruction>) (nodeMap: Map<string, (string*string)>) startingNode = 
     let instructionsArray = Seq.toArray instructions
     let rec recGetTraversalData (traversalData: TraversalData) (visitedNodeInstructionsMap: Map<(string*int), int>) (currInstruction: int) (stepCount: int) (currNode: string) = 
         let nodeInstruction = (currNode, currInstruction)
@@ -60,8 +60,7 @@ let GetTraversalData (instructions: seq<Instruction>) (nodeMap: Map<string, (str
                 LoopLength = Some (stepCount - visitedNodeInstructionsMap[nodeInstruction])}
         else
             let nextTraversalData = 
-                let endingNodeRegex = Regex(@"[\w]+Z")
-                match endingNodeRegex.IsMatch currNode with 
+                match endingNodesFunc currNode with 
                 | true -> {traversalData with EndingNodesSteps = (currNode,stepCount) :: traversalData.EndingNodesSteps}
                 | false -> traversalData
             let nextNode = 
@@ -92,32 +91,34 @@ let GetTraversalData (instructions: seq<Instruction>) (nodeMap: Map<string, (str
 
 let Part1 input = 
     let (instructions, nodeMap) = input
-    
-    let instructionsArray = Seq.toArray instructions
 
-    let rec followInstructions currSteps currNode = 
-        match currNode = "ZZZ" with 
-        | true -> currSteps
-        | false ->
-            match Map.tryFind currNode nodeMap with 
-            | None -> failwith $"Node '{currNode}' not in map."
-            | Some (leftNextNode, rightNextNode) -> 
-                let nextNode = 
-                    match instructionsArray[currSteps % instructionsArray.Length] with 
-                    | Instruction.Left -> leftNextNode
-                    | Instruction.Right -> rightNextNode
-                followInstructions (currSteps + 1) nextNode
+    let (startingNode, endingNode) = ("AAA", "ZZZ")
+
+    let endingNodeFunc nodeName = nodeName = endingNode
     
-    followInstructions 0 "AAA"
+    let traversalData = GetTraversalData endingNodeFunc instructions nodeMap startingNode 
+
+    let sortedEndingNodeDistances = 
+        traversalData.EndingNodesSteps
+        |> List.filter (fun (nodeName, _) -> endingNodeFunc nodeName)
+        |> List.map (fun (_, nodeDistance) -> nodeDistance)
+        |> List.sort
+
+    match List.isEmpty sortedEndingNodeDistances with 
+    | false -> List.head sortedEndingNodeDistances
+    | true -> failwith $"Unable to find {endingNode}"
 
 let Part2 input = 
     let (instructions, (nodeMap: Map<string, (string*string)>)) = input
 
+    let startingNodeFunc (nodeName: string) = Regex(@"[\w]+A").IsMatch nodeName
+    let endingNodesFunc (nodeName: string) = Regex(@"[\w]+Z").IsMatch nodeName
+
     let starterNodes = 
         Map.keys nodeMap
-        |> Seq.filter (fun nodeName -> Regex(@"[\w]+A").IsMatch nodeName)
+        |> Seq.filter startingNodeFunc
         |> Seq.toList
-        |> List.map (fun nodeName -> GetTraversalData instructions nodeMap)
+        |> List.map (fun startingNodeName -> GetTraversalData endingNodesFunc instructions nodeMap startingNodeName)
 
     0
 
