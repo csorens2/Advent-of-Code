@@ -114,7 +114,7 @@ let Part2 input =
     let startingNodeFunc (nodeName: string) = Regex(@"[\w]+A").IsMatch nodeName
     let endingNodesFunc (nodeName: string) = Regex(@"[\w]+Z").IsMatch nodeName
 
-    let starterNodes = 
+    let traversalData = 
         Map.keys nodeMap
         |> Seq.filter startingNodeFunc
         |> Seq.toList
