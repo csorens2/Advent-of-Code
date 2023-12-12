@@ -10,7 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="ExamplePart1.txt">
+    <Content Include="ExamplePart1-2.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ExamplePart1-1.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ExamplePart2.txt">
