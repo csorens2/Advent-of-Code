@@ -43,16 +43,6 @@ namespace Day10
 
         public static int Part1(List<List<Tile>> input)
         {
-            Func<(int, int), (int, int), double> distance = (source, dest) =>
-            {
-                (int sourceY, int sourceX) = source;
-                (int destY, int destX) = dest;
-                return 
-                    Math.Sqrt(
-                        Math.Pow(destY - sourceY, 2) +
-                        Math.Pow(destX - sourceX, 2));
-            };
-
             Func<(int, int), bool> inBounds = (point) =>
             {
                 (int pointY, int pointX) = point;
@@ -95,105 +85,47 @@ namespace Day10
                 input[startingY].
                 FindIndex(0, tileCol => tileCol == Tile.Start);
             var startingPoint = (startingY, startingX);
-
-            // DFS to find the loop, and the point with the longest distance
-            // Prev-Point, Curr-Point, Visited-Points
-            var traversalStack = new Stack<((int, int), (int,int), HashSet<(int, int)>)>();
             var startingPrevPoint = (int.MinValue, int.MinValue);
-            var startingStackTuple = (startingPrevPoint, startingPoint, new HashSet<(int, int)>());
-            traversalStack.Push(startingStackTuple);
-            (int, int)? maxDistancePoint = null;
-            while (traversalStack.Count != 0)
-            {
-                ((int, int) prevPoint, (int, int) currPoint, HashSet<(int, int)> visitedSet) =
-                    traversalStack.Pop();
 
-                (int currY, int currX) = currPoint;
+            var traversalQueue = new Queue<((int, int), (int, int), int)>();
+            var startingQueueTuple = (startingPrevPoint, (startingY, startingX), 0);
+            traversalQueue.Enqueue(startingQueueTuple);
+            var visitedSet = new HashSet<(int, int)>();
+            while (traversalQueue.Count != 0)
+            {
+                ((int, int) prevPoint, (int, int) currPoint, int currSteps) = traversalQueue.Dequeue();
+
                 if (!inBounds(currPoint))
                 {
                     continue;
                 }
+                (int currY, int currX) = currPoint;
                 if (input[currY][currX] == Tile.Ground)
                 {
                     continue;
                 }
-                
-                if (input[currY][currX] == Tile.Start && startingPrevPoint != prevPoint)
-                {
-                    var test =
-                        visitedSet.
-                        Select(visitedPoint => (visitedPoint, distance(startingPoint, visitedPoint))).
-                        OrderByDescending(x => x.Item2).ToList();
-
-                    maxDistancePoint =
-                        visitedSet.
-                        OrderByDescending(visitedPoint => distance(startingPoint, visitedPoint)).
-                        First();
-                    break;
-                }
 
                 if (visitedSet.Contains(currPoint))
-                {
-                    continue;
-                }
-                visitedSet.Add(currPoint);
-
-                foreach (var toPush in getNextPoints(input[currY][currX], prevPoint, currPoint))
-                {
-                    var newStackEntry = (currPoint, toPush, visitedSet);
-                    traversalStack.Push(newStackEntry);
-                }
-            }
-            if (maxDistancePoint == null)
-            {
-                throw new Exception("No loop found");
-            }
-
-            var traversalQueue = new Queue<((int, int), (int, int), int, HashSet<(int, int)>)>();
-            var startingQueueTuple = (startingPoint, (startingY, startingX), 0, new HashSet<(int, int)>());
-            traversalQueue.Enqueue(startingQueueTuple);
-            while (traversalQueue.Count != 0)
-            {
-                ((int, int) prevPoint, (int, int) currPoint, int currSteps, HashSet<(int, int)> visitedSet) =
-                    traversalQueue.Dequeue();
-
-                if (currPoint == maxDistancePoint)
                 {
                     return currSteps;
                 }
 
-                (int currY, int currX) = currPoint;
-                if (!inBounds(currPoint))
-                {
-                    continue;
-                }
-                if (input[currY][currX] == Tile.Ground)
-                {
-                    continue;
-                }
-
-                if (visitedSet.Contains(currPoint))
-                {
-                    continue;
-                }
                 visitedSet.Add(currPoint);
-
                 foreach (var toEnqueue in getNextPoints(input[currY][currX], prevPoint, currPoint))
                 {
-                    var newQueueEntry = (currPoint, toEnqueue, currSteps + 1, visitedSet);
+                    var newQueueEntry = (currPoint, toEnqueue, currSteps + 1);
                     traversalQueue.Enqueue(newQueueEntry);
                 }
             }
 
-            throw new Exception("Somehow didn't find point again.");
+            throw new Exception("STuff");
         }
 
         static void Main(string[] args)
         {
-            var test = Program.ParseInput("Input.txt");
-            var test2 = Part1(test);
-
-            Console.WriteLine("Hello, World!");
+            var parsedInput = Program.ParseInput("Input.txt");
+            var part1Result = Part1(parsedInput);
+            Console.WriteLine($"Part 1 Result: {part1Result}");
         }
     }
 }
