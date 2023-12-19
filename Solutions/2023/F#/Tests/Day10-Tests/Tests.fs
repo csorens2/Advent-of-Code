@@ -3,7 +3,6 @@ module Tests
 open Xunit
 open Day10
 
-(*
 [<Fact>]
 let ``Part1-1 Example Test`` () = 
     let input = ParseInput("ExamplePart1-1.txt")
@@ -11,9 +10,10 @@ let ``Part1-1 Example Test`` () =
 
 [<Fact>]
 let ``Part1-2 Example Test`` () = 
-    // let input = ParseInput("ExamplePart1-2.txt")
+    let input = ParseInput("ExamplePart1-2.txt")
     Assert.Equal(8, Part1 input)
 
+(*
 [<Fact>]
 let ``Part1 Input Test`` () = 
     let input = ParseInput("Input.txt")

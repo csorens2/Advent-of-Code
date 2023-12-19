@@ -49,7 +49,7 @@ let Part1 (input: Tile array array) =
                 (Tile.NorthWestBend, [(currY - 1, currX); (currY, currX - 1)])
                 (Tile.SouthEastBend, [(currY + 1, currX); (currY, currX + 1)])
                 (Tile.SouthWestBend, [(currY + 1, currX); (currY, currX - 1)])
-                (Tile.Start, [(currY + 1, currX);(currY + 1, currX);(currY, currX - 1);(currY, currX - 1)])
+                (Tile.Start, [(currY + 1, currX);(currY - 1, currX);(currY, currX + 1);(currY, currX - 1)])
             ]   
             |> Map.ofList
         List.filter (fun node -> node <> prevNode) nextPointsMap[tileType]
@@ -69,52 +69,33 @@ let Part1 (input: Tile array array) =
         else 
             Some input.[pointY].[pointX]
 
-    let rec traverseMaze (traversalMap: Map<(int*int), int>) (prevPoint: (int*int)) (currPoint: (int*int)) (currSteps: int) : Map<(int*int), int> option  = 
+    let rec traverseMaze (visitedSet: Set<(int*int)>) (prevPoint: (int*int)) (currPoint: (int*int)) (currSteps: int) : int option  = 
         // Base cases
         match getTileWithBoundsCheck currPoint with 
         | None -> None
         | Some tile when tile = Tile.Ground -> None
-        | Some tile when tile = Tile.Start && currSteps <> 0 -> Some traversalMap
+        | Some tile when tile = Tile.Start && currSteps <> 0 -> Some currSteps
         | Some tile -> 
-            match Map.tryFind currPoint traversalMap with 
-            | Some _ -> None
-            | None ->
-                let nextTraversalMap = Map.add currPoint currSteps traversalMap
+            match Set.contains currPoint visitedSet with 
+            | true -> None
+            | false ->
+                let nextVisitedSet = Set.add currPoint visitedSet
                 let nextSteps = currSteps + 1
                 
                 let rec checkChildPoints remainingPoints = 
                     match List.isEmpty remainingPoints with 
                     | true -> None
                     | false ->
-                        match traverseMaze nextTraversalMap currPoint (List.head remainingPoints) nextSteps with 
+                        match traverseMaze nextVisitedSet currPoint (List.head remainingPoints) nextSteps with 
                         | None -> checkChildPoints (List.tail remainingPoints)
-                        | Some finishedMap -> Some finishedMap
+                        | Some loopSize -> Some loopSize
 
                 let nextPoints = getNextPoints tile currPoint prevPoint
                 checkChildPoints nextPoints
 
-    let getDistanceToStart (pointX, pointY) = 
-        let deltaX = float (pointX - startingX)
-        let deltaY = float (pointY - startingY)
-        sqrt ((deltaX ** 2) + (deltaY ** 2))
-
-    let traversalMap = 
-        (traverseMaze Map.empty (-1,-1) (startingY, startingX) 0).Value
-
-    let traversalSteps = 
-        traversalMap
-        |> Map.toList
-
-
-    let (_, test) = 
-        traversalMap
-        |> Map.toList
-        |> List.map (fun (point, stepsToPoint) -> (getDistanceToStart point, stepsToPoint))
-        |> List.sortByDescending (fun (distance, _) -> distance)
-        |> List.head
-
-
-    test
+    let loopLength = (traverseMaze Set.empty (-1,-1) (startingY, startingX) 0).Value
+    
+    loopLength / 2
 
 let Part2 input = 
     0
@@ -122,8 +103,8 @@ let Part2 input =
 [<EntryPoint>]
 let main _ =
     let input = ParseInput("Input.txt")
-    //let part1Result = Part1 input
-    //printfn "Part 1 Result: %d" part1Result // 
+    let part1Result = Part1 input
+    printfn "Part 1 Result: %d" part1Result // 
     //let part2Result = Part2 input
     //printfn "Part 2 Result: %d" part2Result // 
     0
