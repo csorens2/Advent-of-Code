@@ -11,6 +11,16 @@ let ``Part1-1 Example Test`` () =
 [<Fact>]
 let ``Part1-2 Example Test`` () = 
     let input = ParseInput("ExamplePart1-2.txt")
+    Assert.Equal(4, Part1 input)
+
+[<Fact>]
+let ``Part1-3 Example Test`` () = 
+    let input = ParseInput("ExamplePart1-3.txt")
+    Assert.Equal(8, Part1 input)
+
+[<Fact>]
+let ``Part1-4 Example Test`` () = 
+    let input = ParseInput("ExamplePart1-4.txt")
     Assert.Equal(8, Part1 input)
 
 (*

@@ -1,2 +1,0 @@
-﻿This problem requires BFS. That's not impossible to do in F#. But it is very very annoying to do so, while remaining within the "no mutation" rule of funtional programming.
-So I'm just gonna use a different language.
