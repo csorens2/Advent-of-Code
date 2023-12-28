@@ -88,19 +88,19 @@ let GetTile (grid: Tile array array) (targetY, targetX) =
     else 
         Some (grid.[targetY].[targetX])
 
-let Part1 (input: Tile array array) = 
-    let rec dfsFindLoopLength prevDirection currPos currSteps =
-        match GetTile input currPos with
+/// The path will be in reverse order, with the start at the end.
+let GetLoopPath tileGrid = 
+    let rec getLoopPath prevDirection currPos loopPath =
+        match GetTile tileGrid currPos with 
         | None -> None
         | Some GroundTile -> None
-        | Some StartTile when currSteps <> 0 -> Some currSteps
+        | Some StartTile when not (List.isEmpty loopPath) -> Some loopPath
         | Some StartTile ->
-            GetNextPoints StartTile currPos
-            |> List.pick (fun (startingDirection, startingPos) -> 
-                let findLoopResult = dfsFindLoopLength startingDirection startingPos 1
-                match findLoopResult with 
+            GetNextPoints StartTile currPos 
+            |> List.pick (fun (startingDirection, startingPos) ->
+                match getLoopPath startingDirection startingPos [currPos] with 
                 | None -> None
-                | Some _ -> Some (findLoopResult))
+                | Some loopPathResult -> Some (Some (loopPathResult)))
         | Some (PipeTile currPipe) when not (PipeFits prevDirection currPipe) -> None
         | Some (PipeTile currPipe) -> 
             // Need to make sure we don't double-back
@@ -114,20 +114,43 @@ let Part1 (input: Tile array array) =
                 GetNextPoints (PipeTile currPipe) currPos
                 |> List.filter (fun (nextDirection, _) -> nextDirection <> directionToRemove)
                 |> List.head
-            dfsFindLoopLength nextDirection nextPos (currSteps + 1)
-             
+            getLoopPath nextDirection nextPos (currPos :: loopPath)
+
     let startingY = 
-        input
+        tileGrid
         |> Array.findIndex (fun tileRow -> Array.contains StartTile tileRow)
     let startingX = 
-        input[startingY]
-        |> Array.findIndex (fun tile -> tile = StartTile)  
-    
-    match dfsFindLoopLength North (startingY, startingX) 0 with 
-    | None -> failwith "Somehow didn't find loop" 
-    | Some loopLength -> loopLength / 2
+        tileGrid[startingY]
+        |> Array.findIndex (fun tile -> tile = StartTile) 
 
-let Part2 input = 
+    match getLoopPath North (startingY, startingX) List.empty with
+    | None -> failwith "Somehow didn't find loop"
+    | Some loopPath -> loopPath
+
+let Part1 input = 
+    (List.length (GetLoopPath input)) / 2
+    
+let Part2 (input: Tile array array) = 
+
+    (*
+    let pipeIsVertex pipe = List.contains pipe [NorthEast; NorthWest; SouthEast; SouthWest]
+
+    // We can't assume that the start is the first vertex, since the loop may go straight through the start
+    // We could build the area starting from the first vertex we find, but that complicates the code a lot
+    // Since I like simplicity, I'm gonna opt for finding the path of the loop, taking the first and last positions,
+    // and using those to find if the start is a vertex
+    let loopPath = GetLoopPath input
+
+    let firstVertex = List.find (fun pos -> 
+            match GetTile input pos with 
+            | Some (PipeTile pipe) when pipeIsVertex pipe -> true
+            | _ -> false) loopPath
+
+    let remainingPath = 
+        loopPath
+        |> List.skipWhile (fun )
+    *)
+
     0
 
 [<EntryPoint>]
