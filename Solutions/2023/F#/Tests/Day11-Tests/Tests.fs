@@ -6,7 +6,7 @@ open Day11
 [<Fact>]
 let ``Part1 Example Test`` () = 
     let input = ParseInput("ExamplePart1.txt")
-    Assert.Equal(, Part1 input)
+    Assert.Equal(374, Part1 input)
 
 [<Fact>]
 let ``Part1 Input Test`` () = 
