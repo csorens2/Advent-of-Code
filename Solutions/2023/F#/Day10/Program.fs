@@ -46,48 +46,48 @@ let ParseInput filepath =
         |> Seq.toArray)
     |> Seq.toArray
 
-let PipeFits arrivingDirection currPipe =        
-    match arrivingDirection with 
-        | North -> [Vertical; SouthEast; SouthWest]
-        | South -> [Vertical; NorthEast; NorthWest]
-        | East -> [Horizontal; NorthWest; SouthWest]
-        | West -> [Horizontal; NorthEast; SouthEast]
-    |> List.contains currPipe
-
-let GetNextPoints tileType (currY, currX) = 
-    match tileType with 
-        | Start -> [North;South;East;West]
-        | PipeTile pipe -> 
-            match pipe with 
-                | Vertical -> [North; South]
-                | Horizontal -> [East; West]
-                | NorthEast -> [North; East]
-                | NorthWest -> [North; West]
-                | SouthEast -> [South; East]
-                | SouthWest -> [South; West]
-        | Ground -> failwith "Attempting to get next points from ground tile"
-    |> List.map (fun direction ->
-        let nextPos = 
-            match direction with 
-            | North -> (currY - 1, currX)
-            | South -> (currY + 1, currX)
-            | East -> (currY, currX + 1)
-            | West -> (currY, currX - 1)
-        (direction, nextPos))
-
-let InsideGrid (grid: Tile array array) (targetY, targetX) = 
-    if targetY < 0 || grid.Length <= targetY then
-        false
-    elif targetX < 0 || grid[targetY].Length <= targetX then
-        false
-    else 
-        true
-
-/// Will return a full loop of (Start :: Rest of Loop :: Start)
+/// Will return a list of (y,x) positions, with the start at both ends. So: (Start :: Rest of Loop :: Start)
 let GetLoopPath tileGrid = 
-    let rec getLoopPath prevDirection currPos loopPath =
+    let pipeFits arrivingDirection currPipe =        
+        match arrivingDirection with 
+            | North -> [Vertical; SouthEast; SouthWest]
+            | South -> [Vertical; NorthEast; NorthWest]
+            | East -> [Horizontal; NorthWest; SouthWest]
+            | West -> [Horizontal; NorthEast; SouthEast]
+        |> List.contains currPipe
+
+    let getNextPoints tileType (currY, currX) = 
+        match tileType with 
+            | Start -> [North;South;East;West]
+            | PipeTile pipe -> 
+                match pipe with 
+                    | Vertical -> [North; South]
+                    | Horizontal -> [East; West]
+                    | NorthEast -> [North; East]
+                    | NorthWest -> [North; West]
+                    | SouthEast -> [South; East]
+                    | SouthWest -> [South; West]
+            | Ground -> failwith "Attempting to get next points from ground tile"
+        |> List.map (fun direction ->
+            let nextPos = 
+                match direction with 
+                | North -> (currY - 1, currX)
+                | South -> (currY + 1, currX)
+                | East -> (currY, currX + 1)
+                | West -> (currY, currX - 1)
+            (direction, nextPos))
+
+    let insideGrid (grid: Tile array array) (targetY, targetX) = 
+        if targetY < 0 || grid.Length <= targetY then
+            false
+        elif targetX < 0 || grid[targetY].Length <= targetX then
+            false
+        else 
+            true
+
+    let rec getLoopPath arrivingDirection currPos loopPath =
         let nextLoopPath = currPos :: loopPath
-        match InsideGrid tileGrid currPos with 
+        match insideGrid tileGrid currPos with 
         | false -> None 
         | true -> 
             let (currY, currX) = currPos
@@ -95,24 +95,24 @@ let GetLoopPath tileGrid =
             | Ground -> None
             | Start when not (List.isEmpty loopPath) -> Some loopPath
             | Start ->
-                GetNextPoints Start currPos 
+                getNextPoints Start currPos 
                 |> List.pick (fun (startingDirection, startingPos) ->
                     match getLoopPath startingDirection startingPos nextLoopPath with 
                     | None -> None
                     | Some loopPathResult -> Some (Some (loopPathResult)))
-            | PipeTile currPipe when not (PipeFits prevDirection currPipe) -> None
+            | PipeTile currPipe when not (pipeFits arrivingDirection currPipe) -> None
             | PipeTile currPipe -> 
                 // Need to make sure we don't double-back
                 let directionToRemove = 
-                    match prevDirection with 
+                    match arrivingDirection with 
                     | North -> South
                     | South -> North
                     | East -> West
                     | West -> East
                 let (nextDirection, nextPos) = 
-                    GetNextPoints (PipeTile currPipe) currPos
+                    getNextPoints (PipeTile currPipe) currPos
                     |> List.filter (fun (nextDirection, _) -> nextDirection <> directionToRemove)
-                    |> List.head
+                    |> List.exactlyOne
                 getLoopPath nextDirection nextPos nextLoopPath
 
     let startingY = 
@@ -154,9 +154,7 @@ let Part2 (input: Tile array array) =
                 ([(startY + 1, startX); (startY, startX - 1)], SouthWest)
             ]
 
-        let (_, newStartPipe) = 
-            startPipeList
-            |> List.find (fun (pipeList, _) -> (List.sort pipeList) = (List.sort [firstPipe; lastPipe]))
+        let (_, newStartPipe) = List.find (fun (pipeList, _) -> (List.sort pipeList) = (List.sort [firstPipe; lastPipe])) startPipeList
 
         input
         |> Array.map (fun rowTiles ->
@@ -181,8 +179,6 @@ let Part2 (input: Tile array array) =
                     (insideLoop, subGroundCount)
             ) (false, 0) 
 
-        let test = 1
-
         gridCount + rowCount
     ) 0
 
@@ -190,7 +186,7 @@ let Part2 (input: Tile array array) =
 let main _ =
     let input = ParseInput("Input.txt")
     let part1Result = Part1 input
-    printfn "Part 1 Result: %d" part1Result // 
+    printfn "Part 1 Result: %d" part1Result // 6890
     let part2Result = Part2 input
-    printfn "Part 2 Result: %d" part2Result // 
+    printfn "Part 2 Result: %d" part2Result // 453
     0
