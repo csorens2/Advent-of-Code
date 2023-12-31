@@ -2,10 +2,36 @@
 
 open System.IO
 
+type Space = 
+    | Empty
+    | Galaxy
+
 let ParseInput filepath = 
     File.ReadLines(filepath)
+    |> Seq.map (fun line ->
+        line
+        |> Seq.map (fun nextChar -> 
+            match nextChar with 
+            | '.' -> Empty
+            | '#' -> Galaxy
+            | _ -> failwith $"Failed attempting to parse unknown character: '{nextChar}'")
+        |> Seq.toList)
+    |> Seq.toList
 
-let Part1 input = 
+let Part1 (input: Space list list) = 
+
+    // First, we get which rows need to be expanded
+    let rowLength = List.length input
+    let colLength = List.length (List.item 0 input)
+
+    let inputArray = 
+        input
+        |> List.toArray
+        |> Array.map (fun row -> List.toArray row)
+
+    let rec getEmptyRowsCols (remainingRows, remainingCols)
+
+
     0
 
 let Part2 input = 
