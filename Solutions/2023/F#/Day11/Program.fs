@@ -20,17 +20,26 @@ let ParseInput filepath =
 
 let Part1 (input: Space list list) = 
 
-    // First, we get which rows need to be expanded
-    let rowLength = List.length input
-    let colLength = List.length (List.item 0 input)
-
     let inputArray = 
         input
         |> List.toArray
         |> Array.map (fun row -> List.toArray row)
 
-    let rec getEmptyRowsCols (remainingRows, remainingCols)
+    // First, we get which rows need to be expanded
+    let rowLength = Array.length inputArray
+    let colLength = Array.length inputArray.[0]
 
+    let rowList = [0..rowLength - 1]
+    let colList = [0..colLength - 1]
+
+    let (emptyRow, emptyCol) = 
+        rowList
+        |> List.fold (fun (emptyRowAcc, emptyColAcc) yPos -> 
+            colList
+            |> List.fold (fun (subEmptyRowAcc, subEmptyColAcc) xPos -> 
+                match inputArray.[yPos].[xPos] with 
+                | Empty -> (subEmptyRowAcc, subEmptyColAcc)
+                | Galaxy -> (Set.remove yPos subEmptyRowAcc, Set.remove xPos subEmptyColAcc)) (emptyRowAcc, emptyColAcc)) (Set.ofList rowList, Set.ofList colList)
 
     0
 
