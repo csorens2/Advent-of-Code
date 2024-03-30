@@ -27,25 +27,36 @@ public struct Day1App
         }
     }
     
-    public static func CalculateFuelUsage(inputFuel: Int) -> Int
+    public static func CalculateNeededFuel(weight: Int) -> Int
     {
-        let nextFuel = Int(floor(Double(inputFuel) / 3.0)) - 2
-        if nextFuel == 0 || nextFuel < 0
+        return Int(floor(Double(weight) / 3.0)) - 2
+    }
+    
+    public static func CalculateFuelUsage(nextWeight: Int) -> Int
+    {
+        let nextFuel = CalculateNeededFuel(weight: nextWeight)
+        if nextFuel <= 0
         {
             return 0
         }
-        else
-        {
-            return nextFuel + CalculateFuelUsage(inputFuel: nextFuel)
-        }
+        return nextFuel + CalculateFuelUsage(nextWeight: nextFuel)
     }
     
     public static func Part1(input: [Int]) -> Int
     {
         return
             input
-            .map {CalculateFuelUsage(inputFuel: $0)}
+            .map {CalculateNeededFuel(weight: $0)}
             .reduce(0, { $0 + $1 })
+    }
+    
+    public static func Part2(input: [Int]) -> Int
+    {
+        return
+            input
+            .map {CalculateFuelUsage(nextWeight: $0)}
+            .reduce(0, { $0 + $1 })
+            
     }
     
     
@@ -53,8 +64,9 @@ public struct Day1App
     {
         let input = ProcessInput(fileName: "Input.txt")
         let part1Result = Part1(input: input)
+        let part2Result = Part2(input: input)
         print("Part1 Result: \(part1Result)") //3332538
-        
+        print("Part2 Result: \(part2Result)") //4995942
         print("Hello, World!")
     }
     
