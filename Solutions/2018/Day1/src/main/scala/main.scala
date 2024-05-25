@@ -1,3 +1,4 @@
+
 import scala.io.Source
 
 enum Sign:
@@ -5,7 +6,7 @@ enum Sign:
 
 class FrequencyChange(val frequencySign: Sign, val frequencyValue: Int)
 
-def parseFile(filePath: String) = {
+def parseFile(filePath: String): Seq[FrequencyChange] = {
   val fileSource = Source.fromFile(filePath)
   val lineRegex = "([+-])(\\d+)".r
 
@@ -21,13 +22,25 @@ def parseFile(filePath: String) = {
       case None => throw new Exception("Line match not found for: " + toParse)
     }
 
+  fileSource.getLines().map(parseFreqChange).toList
+}
 
-
-  for (line <- fileSource.getLines()) {
-  } yield parseFreqChange(line)
+def Part1(freqChanges: Seq[FrequencyChange]): Int = {
+  freqChanges.headOption match {
+    case Some(headFreqChange) =>
+      val sign = headFreqChange.frequencySign match {
+        case Sign.Plus => 1
+        case Sign.Minus => -1
+        case _ => throw new Exception("Unknown sign parsed")
+      }
+      (sign * headFreqChange.frequencyValue) + Part1(freqChanges.tail)
+    case None => 0
+  }
 }
 
 @main
 def main(): Unit = {
-  println("Hello worlds!")
+  val input = parseFile("Input.txt")
+  val part1Result = Part1(input)
+  println("Part1 Result: " + part1Result)
 }
