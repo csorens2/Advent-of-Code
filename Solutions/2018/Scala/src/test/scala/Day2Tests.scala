@@ -24,9 +24,8 @@ class Day2Tests extends munit.FunSuite:
   }
 
   test("Part2") {
-    assertEquals(true, false)
-    //val input = Day2.parseFile("/Day2/Input.txt")
-    //val obtained = Part2()
-    //val expected =
-    //assertEquals(obtained, expected)
+    val input = Day2.parseFile("/Day2/Input.txt")
+    val obtained = Part2(input)
+    val expected = "rmyxgdlihczskunpfijqcebtv"
+    assertEquals(obtained, expected)
   }
