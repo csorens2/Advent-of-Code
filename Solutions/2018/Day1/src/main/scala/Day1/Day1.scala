@@ -1,5 +1,6 @@
 package Day1
 
+import scala.annotation.tailrec
 import scala.io.Source
 
 /*
@@ -16,6 +17,7 @@ def ReadFile(input: String): Unit =
   val test = 1
 */
 
+/*
 enum Sign:
   case Plus, Minus
 
@@ -44,12 +46,56 @@ def Part1(freqChanges: Seq[FrequencyChange]): Int =
       val sign = headFreqChange.frequencySign match
         case Sign.Plus => 1
         case Sign.Minus => -1
-        case _ => throw new Exception("Unknown sign parsed")
       (sign * headFreqChange.frequencyValue) + Part1(freqChanges.tail)
     case None => 0
+ */
 
-def Part2(freqChanges: Seq[FrequencyChange]): Int = ???
-def reqPart2(freqSet: Set[Int], currentFreq: Int, freqChanges: Seq[FrequencyChange]) = ???
+def parseFile(fileName: String): List[Int] =
+  val resource = Source.getClass.getResource(fileName)
+  val fileSource = Source.fromFile(resource.toURI)
+
+  val lineRegex = "([+-])(\\d+)".r
+
+  val parseFreqChangeFunc = (toParse: String) =>
+    val possibleMatch = lineRegex.findFirstMatchIn(toParse)
+    possibleMatch match
+      case Some(lineMatch) =>
+        val freqVal = lineMatch.group(2).toInt
+        lineMatch.group(1) match
+          case "+" => freqVal
+          case "-" => -1 * freqVal
+          case _ => throw new Exception("Unknown sign parsed")
+      case None => throw new Exception("Line match not found for: " + toParse)
+  fileSource.getLines().map(parseFreqChangeFunc).toList
+
+def Part1(input: List[Int]): Int =
+  input.sum
+
+def Part2(input: List[Int]): Int =
+
+  // LazyList is the equivalent to a sequence in F#
+  def toInfiniteLazyList(intList: List[Int]): LazyList[Int] =
+    def loop(xs: List[Int]): LazyList[Int] = xs match
+      case Nil => loop(intList)  // Start again from the original list
+      case head :: tail => head #:: loop(tail) // #:: === "Lazily append head to the front of the lazy list"
+    loop(intList)
+
+  @tailrec
+  def recPart2(freqSet: Set[Int], lastFreq: Int, freqChanges: LazyList[Int]): Int =
+    freqChanges.headOption match
+      case None => throw new Exception("Frequency changes list should be infinite, but isn't.")
+      case Some(freqChange) =>
+        val currentFreq = lastFreq + freqChange
+        if freqSet.contains(currentFreq) then
+          currentFreq
+        else
+          recPart2(freqSet + currentFreq, currentFreq, freqChanges.tail)
+
+  val infiniteSeq = toInfiniteLazyList(input)
+
+  recPart2(Set.empty, 0, infiniteSeq)
+
+
 
 
 

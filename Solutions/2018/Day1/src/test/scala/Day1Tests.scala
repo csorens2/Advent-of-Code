@@ -7,4 +7,11 @@ class Day1Tests extends munit.FunSuite:
     val obtained = Part1(input)
     val expected = 508
     assertEquals(obtained, expected)
+    assert
+  }
+
+  test("Part2 Test") {
+    val obtained = Part2(input)
+    val expected = 549
+    assertEquals(obtained, expected)
   }
