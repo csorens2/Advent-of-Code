@@ -49,6 +49,10 @@ def Part2(input: List[FabricSquare]): Int =
     if remainingFabricSquares.isEmpty then
       throw new Exception("Unable to find uncovered fabric square")
     else
+      // For each of the fabric squares, we need to check if they have an overlap spot
+      // So we use a nested "find" to scan over each part of the fabric,
+      // and if we find an overlap, we pass up a "found" message by returning the pos in the square
+      // as an option.
       val nextFabricSquare = remainingFabricSquares.head
       val foundDoubleCoveredSpot =
         (nextFabricSquare.xPos until nextFabricSquare.xPos + nextFabricSquare.width).find(xPos =>
