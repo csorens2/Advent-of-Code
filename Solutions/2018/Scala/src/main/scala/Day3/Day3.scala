@@ -28,11 +28,11 @@ def fabricCovering(remainingFabric: List[FabricSquare], fabricMap: Map[(Int, Int
     val nextFabricMap =
       (nextFabric.xPos until nextFabric.xPos + nextFabric.width).foldLeft(fabricMap)((innerMap, xCoord) =>
         (nextFabric.yPos until nextFabric.yPos + nextFabric.height).foldLeft(innerMap)((innerInnerMap, yCoord) =>
-          val nextCoordCount =
+          val nextCoordinateCount =
             innerInnerMap.get((xCoord, yCoord)) match
               case None => 1
               case Some(prevCount) => prevCount + 1
-          innerInnerMap + ((xCoord, yCoord) -> nextCoordCount)
+          innerInnerMap + ((xCoord, yCoord) -> nextCoordinateCount)
         ))
     fabricCovering(remainingFabric.tail, nextFabricMap)
 
@@ -43,6 +43,30 @@ def Part1(input: List[FabricSquare]): Int =
 
 def Part2(input: List[FabricSquare]): Int =
   val fabricMap = fabricCovering(input, Map.empty)
-  ???
+
+  @tailrec
+  def recPart2(remainingFabricSquares: List[FabricSquare]): Int =
+    if remainingFabricSquares.isEmpty then
+      throw new Exception("Unable to find uncovered fabric square")
+    else
+      val nextFabricSquare = remainingFabricSquares.head
+      val foundDoubleCoveredSpot =
+        (nextFabricSquare.xPos until nextFabricSquare.xPos + nextFabricSquare.width).find(xPos =>
+          val innerFoundDoubleCover = (nextFabricSquare.yPos until nextFabricSquare.yPos + nextFabricSquare.height).find(yPos =>
+            val checkSpotDoubleCovered = fabricMap.get((xPos, yPos))
+            checkSpotDoubleCovered match
+              case None => false
+              case Some(spotCoverings) if spotCoverings > 1 => true
+              case Some(_) => false)
+          innerFoundDoubleCover match
+            case None => false
+            case Some(_) => true
+        )
+      if foundDoubleCoveredSpot.isEmpty then
+        nextFabricSquare.ID
+      else
+        recPart2(remainingFabricSquares.tail)
+
+  recPart2(input)
 
 
