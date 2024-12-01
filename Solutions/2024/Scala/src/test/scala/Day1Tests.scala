@@ -3,25 +3,29 @@ import Day1.*
 class Day1Tests extends munit.FunSuite:
 
   test("Part1 TestInput") {
-    assertEquals(true, false)
-    //val input = Day<x>.parseFile("/Day<x>/TestInput1.txt")
-    //val obtained = Part1(input)
-    //val expected = 12
-    //assertEquals(obtained, expected)
+    val (input1, input2) = Day1.parseFile("/Day1/TestInput1.txt")
+    val obtained = Part1(input1, input2)
+    val expected = 11
+    assertEquals(obtained, expected)
   }
 
   test("Part1") {
-    assertEquals(true, false)
-    //val input = Day<x>.parseFile("/Day<x>/Input.txt")
-    //val obtained = Part1()
-    //val expected =
-    //assertEquals(obtained, expected)
+    val (input1, input2) = Day1.parseFile("/Day1/Input.txt")
+    val obtained = Part1(input1, input2)
+    val expected = 1970720
+    assertEquals(obtained, expected)
+  }
+
+  test("Part2 TestInput") {
+    val (input1, input2) = Day1.parseFile("/Day1/TestInput1.txt")
+    val obtained = Part2(input1, input2)
+    val expected = 31
+    assertEquals(obtained, expected)
   }
 
   test("Part2") {
-    assertEquals(true, false)
-    //val input = Day<x>.parseFile("/Day<x>/Input.txt")
-    //val obtained = Part2()
-    //val expected =
-    //assertEquals(obtained, expected)
+    val (input1, input2) = Day1.parseFile("/Day1/Input.txt")
+    val obtained = Part2(input1, input2)
+    val expected = 17191599
+    assertEquals(obtained, expected)
   }
