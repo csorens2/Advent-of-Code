@@ -41,7 +41,7 @@ def Part1(input: Array[Array[Char]]): Int =
     if point.Value != 'X' then
       throw new Exception("Invalid point to process")
     else
-      val movementFuncs: List[Point => Point] = 
+      val movementFuncs: List[Point => Point] =
         List(
           (point: Point) => Point(point.y - 1, point.x),
           (point: Point) => Point(point.y - 1, point.x + 1),
@@ -51,7 +51,7 @@ def Part1(input: Array[Array[Char]]): Int =
           (point: Point) => Point(point.y + 1, point.x - 1),
           (point: Point) => Point(point.y, point.x - 1),
           (point: Point) => Point(point.y - 1, point.x - 1))
-      
+
       movementFuncs
         .map(moveFunc => processXmas(point, 0, moveFunc))
         .count(_ == true)
@@ -60,10 +60,10 @@ def Part1(input: Array[Array[Char]]): Int =
     for
       y <- input.indices
       x <- input(0).indices
-      if input(y)(x) == 'X'
+      if Point(y,x).Value == 'X'
     yield
       processPoint(Point(y,x))
   numXmas.sum
 
-def Part2(): Int =
+def Part2(input: Array[Array[Char]]): Int =
   ???
