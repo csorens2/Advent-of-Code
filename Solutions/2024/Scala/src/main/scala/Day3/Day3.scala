@@ -30,17 +30,16 @@ def parseFile(fileName: String): List[Command] =
     .flatMap(line =>
       regex
         .findAllMatchIn(line)
-        .map(parseMatch)
-        .toList)
+        .map(parseMatch))
     .toList
 
 def Part1(input: List[Command]): Int =
   input
     .filter(command => command.isInstanceOf[Mul])
-    .map(command => command.asInstanceOf[Mul].mul1 * command.asInstanceOf[Mul].mul2)
+    .map(command =>
+      val mulCommand = command.asInstanceOf[Mul]
+      mulCommand.mul1 * mulCommand.mul2)
     .sum
-
-
 
 def Part2(input: List[Command]): Int =
 
@@ -50,14 +49,10 @@ def Part2(input: List[Command]): Int =
     else
       remainingLine.head match
         case Do() =>
-          val test = 1
           processCommands(remainingLine.tail, true)
         case Dont() =>
-          val test = 2
           processCommands(remainingLine.tail, false)
         case Mul(val1, val2) if active => (val1 * val2) + processCommands(remainingLine.tail, active)
         case _ => processCommands(remainingLine.tail, active)
-
-
 
   processCommands(input, true)
