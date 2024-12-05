@@ -26,7 +26,6 @@ class Day3Tests extends munit.FunSuite:
   test("Part2") {
     val input = Day3.parseFile("/Day3/Input.txt")
     val obtained = Part2(input)
-    val test = 1
-    //val expected =
-    //assertEquals(obtained, expected)
+    val expected = 107862689
+    assertEquals(obtained, expected)
   }
