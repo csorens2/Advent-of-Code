@@ -37,32 +37,6 @@ let ParseInput filepath =
         
 
 let Part1 input = 
-    let rec compareStacks firstStack secondStack = 
-        match List.isEmpty firstStack with 
-        | true -> true
-        | false -> 
-            let topCurr = List.head firstStack
-            let topRemain = List.head secondStack
-            if topCurr = topRemain then 
-                compareStacks (List.tail firstStack) (List.tail secondStack)
-            else
-                false
-    let rec isMirror (topStack: Material array list) (bottomStack: Material array list) = 
-        if List.isEmpty bottomStack then
-            false
-        else
-            if compareStacks topStack bottomStack then 
-                true
-            else
-                let nextTopStack = (List.head bottomStack) :: topStack
-                let nextBottomStack = List.tail bottomStack
-                isMirror nextTopStack bottomStack
-
-    let verticalArrays = 
-        input 
-        |> List.map (fun materials ->
-            let vertical )
-    
     0
 
 let Part2 input = 
