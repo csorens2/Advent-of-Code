@@ -43,7 +43,7 @@ let rec IsSafe (remainingValues: int list) (prev: Option<int>) numTrend usedTole
         else
             IsSafe remainingValues.Tail (Some(nextVal)) numTrend usedTolerate
 
-let Part1 (input: int list list) = 
+let Part1 input = 
     input
     |> List.map (fun nums -> IsSafe nums None None true)
     |> List.filter id
