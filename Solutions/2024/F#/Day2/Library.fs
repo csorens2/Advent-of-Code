@@ -17,7 +17,7 @@ let ParseInput filepath =
     |> Seq.toList
     |> List.map parseLine
 
-let rec IsSafe (remainingValues: int list) (prev: Option<int>) (numTrend: Option<Trend>) (usedTolerate: bool) = 
+let rec IsSafe (remainingValues: int list) (prev: Option<int>) numTrend usedTolerate = 
     if remainingValues.IsEmpty then 
         true
     else if not usedTolerate && (IsSafe remainingValues.Tail prev numTrend true) then 
