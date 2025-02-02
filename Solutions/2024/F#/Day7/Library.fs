@@ -76,7 +76,6 @@ let Part2 input =
                         false
                 divideSuccess || subtractSuccess || concatSuccess
 
-            
         processNums (List.rev bridge.Nums.Tail) bridge.Nums.Head bridge.Total
 
     input
