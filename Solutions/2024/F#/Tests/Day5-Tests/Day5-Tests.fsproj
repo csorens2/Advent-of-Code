@@ -2,16 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <RootNamespace>Day3_Tests</RootNamespace>
+    <RootNamespace>Day5_Tests</RootNamespace>
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Example2.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Example1.txt">
+    <Content Include="Example.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Input.txt">
@@ -29,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Day3\Day3.fsproj" />
+    <ProjectReference Include="..\..\Day5\Day5.fsproj" />
   </ItemGroup>
 
 </Project>
