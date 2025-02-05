@@ -21,7 +21,7 @@ let GetAntinodes (grid: char array array) =
         | None -> freqMap.Add (nextChar, Set.singleton nextPoint)
         | Some(charSet) -> freqMap.Add (nextChar, Set.add nextPoint charSet)
     
-    let antinodeFold acc key pointSet = 
+    let antinodeFold acc _ pointSet = 
         let processPoint point = 
             let getAntinodes oppositePoint = 
                 let (pointY, pointX) = point
