@@ -12,37 +12,50 @@ let ParseInput filepath =
     |> Seq.head
     |> parseLine
 
-let rec processBlink (remainingList: string list) = seq {
-    if not remainingList.IsEmpty then 
-        let nextNum = remainingList.Head
-        if nextNum = "0" then 
-            yield "1"
-        else if nextNum.Length % 2 = 0 then 
-            let leftNum = int64 (nextNum.Substring(0, nextNum.Length / 2))
-            let rightNum = int64 (nextNum.Substring(nextNum.Length / 2))
-            yield leftNum.ToString()
-            yield rightNum.ToString()
-        else 
-            yield ((int64 nextNum) * 2024L).ToString()
-        yield! processBlink (remainingList.Tail)
-}
-let rec blink (numBlink: int) (numList: string list)  =
-    if numBlink = 0 then 
-        numList
+let rec ProcessNum num remainingBlinks (memoization: Map<(string*int), int64>) = 
+    if memoization.ContainsKey (num, remainingBlinks) then 
+        memoization
     else
-        let nextBlink = 
-            processBlink numList
-            |> Seq.toList
-        blink (numBlink - 1) nextBlink 
+        if remainingBlinks = 0 then 
+            Map.add (num, 0) 1 memoization
+        else if num = "0" then 
+            let subMap = ProcessNum "1" (remainingBlinks - 1) memoization
+            Map.add (num, remainingBlinks) (Map.find ("1", remainingBlinks - 1) subMap) subMap
+        else if num.Length % 2 = 0 then
+            let leftNum = (int64 (num.Substring(0, num.Length / 2))).ToString()
+            let rightNum = (int64 (num.Substring(num.Length / 2))).ToString()
+            let leftMemo = ProcessNum leftNum (remainingBlinks - 1) memoization
+            let rightMemo = ProcessNum rightNum (remainingBlinks - 1) leftMemo
+            let sumLeftRight = 
+                (Map.find (leftNum, remainingBlinks - 1) rightMemo) + 
+                (Map.find (rightNum, remainingBlinks - 1) rightMemo) 
+            Map.add (num, remainingBlinks) sumLeftRight rightMemo
+        else 
+            let nextNum = ((int64 num) * 2024L).ToString()
+            let submap = ProcessNum nextNum (remainingBlinks - 1) memoization
+            Map.add (num, remainingBlinks) (Map.find (nextNum, remainingBlinks - 1) submap) submap
 
+let ProcessNums numBlinks nums = 
+    let memoMap = 
+        nums
+        |> Seq.fold (fun acc nextNum -> ProcessNum nextNum numBlinks acc) Map.empty
+    
+    nums
+    |> Seq.fold (fun acc nextNum -> acc + (Map.find (nextNum, numBlinks) memoMap)) 0L
 
-let Part1 (input: string seq) = 
-    Seq.toList input
-    |> blink 25
-    |> List.length
-
+let Part1 input = 
+    ProcessNums 25 input
 
 let Part2 input = 
-    Seq.toList input
-    |> blink 75
-    |> List.length
+    ProcessNums 75 input
+
+    
+
+    
+            
+
+                
+            
+                
+            
+    
