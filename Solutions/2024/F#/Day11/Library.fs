@@ -4,7 +4,7 @@ open System.IO
 open System.Text.RegularExpressions
 
 let ParseInput filepath = 
-    let parseLine (line: string) = 
+    let parseLine line = 
         Regex("(\d+)").Matches line
         |> Seq.map (fun nextMatch -> nextMatch.Groups[0].Value)
 
