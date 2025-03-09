@@ -13,16 +13,12 @@ let ``Part1 Input`` () =
     let input = ParseInput("Input.txt")
     Assert.Equal(2633, Part1 input)
 
-(*
 [<Fact>]
 let ``Part2 Example`` () = 
     let input = ParseInput("Example.txt")
-    //Assert.Equal(, Part2 input)
-    Assert.Fail("Not implemented")
+    Assert.Equal(9, Part2 input)
 
 [<Fact>]
 let ``Part2 Input`` () = 
     let input = ParseInput("Input.txt")
-    //Assert.Equal(, Part2 input)
-    Assert.Fail("Not implemented")
-*)
+    Assert.Equal(1936, Part2 input)

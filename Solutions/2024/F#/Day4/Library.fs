@@ -20,7 +20,7 @@ let ParseInput filepath =
     |> Seq.map(fun line -> line.ToCharArray())
     |> Seq.toArray
 
-let Part1 input= 
+let Part1 input = 
     let rec processXmas (currPoint: Point) chainLength movementFunc = 
         if not (currPoint.InBounds(input)) then 
             false
@@ -57,5 +57,55 @@ let Part1 input=
     }
     |> Seq.sum
 
-let Part2 input = 
-    0
+let Part2 (input: char array array) = 
+    let processAPoint (currPoint: Point) = 
+        let pointY = currPoint.y
+        let pointX = currPoint.x
+
+        let pointList = [
+            // M on top
+            [
+                (Point(pointY - 1, pointX - 1), 'M');
+                (Point(pointY - 1, pointX + 1), 'M');
+                (Point(pointY + 1, pointX - 1), 'S');
+                (Point(pointY + 1, pointX + 1), 'S')
+            ];
+            // M on the right
+            [
+                (Point(pointY - 1, pointX - 1), 'S');
+                (Point(pointY - 1, pointX + 1), 'M');
+                (Point(pointY + 1, pointX - 1), 'S');
+                (Point(pointY + 1, pointX + 1), 'M')
+            ];
+            // M on the bottom
+            [
+                (Point(pointY - 1, pointX - 1), 'S');
+                (Point(pointY - 1, pointX + 1), 'S');
+                (Point(pointY + 1, pointX - 1), 'M');
+                (Point(pointY + 1, pointX + 1), 'M')
+            ];
+            // M on the left
+            [
+                (Point(pointY - 1, pointX - 1), 'M');
+                (Point(pointY - 1, pointX + 1), 'S');
+                (Point(pointY + 1, pointX - 1), 'M');
+                (Point(pointY + 1, pointX + 1), 'S')
+            ]
+        ]
+
+        let forAllFunc ((pointToCheck, charToCheck): Point*char) = 
+            pointToCheck.InBounds(input) && pointToCheck.Value(input) = charToCheck
+            
+        if List.exists (fun pointCharList -> List.forall forAllFunc pointCharList) pointList then 
+            1
+        else 
+            0
+                
+    seq {
+        for y in 0..input.Length - 1 do 
+            for x in 0..input[0].Length - 1 do 
+                if Point(y,x).Value(input) = 'A' then 
+                    yield processAPoint (Point(y,x))
+
+    }
+    |> Seq.sum
