@@ -7,6 +7,12 @@ type Space =
     | Obstruction
     | Guard
 
+type Direction = 
+    | North
+    | South 
+    | East
+    | West
+
 let ParseInput filepath = 
     let parseLine (line: string) = 
         let convertChar char = 
@@ -25,46 +31,88 @@ let ParseInput filepath =
     |> List.map parseLine
     |> List.toArray
 
-let InBounds y x (map: Space array array) = 
-    if y < 0 || x < 0 then 
-        false
-    else if y >= map.Length || x >= map[0].Length then 
-        false
-    else
-        true
+let Rotate currDirection = 
+    match currDirection with 
+    | North -> East
+    | East -> South
+    | South -> West
+    | West -> North
 
-let Part1 (input: Space array array) = 
-    let rec travel y x direction (visitedSpaces: Set<int*int>) = 
-        let moveFuncs = [
-            fun (y,x) -> (y - 1, x)
-            fun (y,x) -> (y, x + 1)
-            fun (y,x) -> (y + 1, x)
-            fun (y,x) -> (y, x - 1)
-        ]
-
-        let nextVisitedSpaces = visitedSpaces.Add (y,x)
-
-        let currMoveFunc = moveFuncs.Item direction
-
-        let (nextY, nextX) = currMoveFunc (y,x)
-
-        if not (InBounds nextY nextX input) then 
-            nextVisitedSpaces.Count
-        else if input[nextY][nextX] = Open || input[nextY][nextX] = Guard then 
-            travel nextY nextX direction nextVisitedSpaces
-        else 
-            travel y x ((direction + 1) % 4) nextVisitedSpaces
-    
-    let guardList = [
+let GetSpaceMap (input: Space array array) = 
+    let spaceSeq = seq {
         for y in 0..input.Length - 1 do 
             for x in 0..input[0].Length - 1 do 
-                if input[y][x] = Guard then 
-                    yield (y,x)
-    ]
-    
-    let (guardY, guardX) = guardList.Head
+                yield ((y,x), input[y][x])
+    }
+    Map.ofSeq spaceSeq
 
-    travel guardY guardX 0 Set.empty
+// Returns (VisitedSpaces, didItLoop)
+let GetVisitedSpaces (spaceMap: Map<(int*int), Space>) = 
+    let rec travel y x direction (visitedSpaces: Set<int*int*Direction>) =         
+        if visitedSpaces.Contains (y,x,direction) then 
+            (visitedSpaces, true)
+        else
+            let nextPoint = 
+                match direction with 
+                | North -> (y - 1, x)
+                | East -> (y, x + 1)
+                | South -> (y + 1, x)
+                | West -> (y, x - 1)
+
+            let (nextY, nextX) = nextPoint
+            let nextVisitedSpaces = visitedSpaces.Add (y,x,direction)
+
+            if not (spaceMap.ContainsKey nextPoint) then 
+                (nextVisitedSpaces, false)
+            else if spaceMap[nextPoint] = Open || spaceMap[nextPoint] = Guard then 
+                travel nextY nextX direction nextVisitedSpaces
+            else 
+                travel y x (Rotate direction) nextVisitedSpaces
+
+    let ((guardY, guardX), _) = 
+        spaceMap
+        |> Map.toList
+        |> List.filter (fun (_,value) -> value = Guard)
+        |> List.head
+    
+    
+    let (rawVisitedSpaces, looped) = travel guardY guardX North Set.empty
+
+    let setFoldFunc acc next = 
+        let (nextY, nextX, _) = next
+        Set.add (nextY, nextX) acc
+
+    let parsedVisitedSpaces = 
+        rawVisitedSpaces
+        |> Set.fold setFoldFunc Set.empty
+
+    (parsedVisitedSpaces, looped)
+
+
+
+
+let Part1 input = 
+    let spaceMap = GetSpaceMap input
+    let (visitedSpaces, _) = GetVisitedSpaces spaceMap
+    visitedSpaces.Count
 
 let Part2 input = 
-    0
+    let baseSpaceMap = GetSpaceMap input
+    let (visitedSpaces, _) = GetVisitedSpaces baseSpaceMap
+
+    let foldFunc acc next = 
+        if baseSpaceMap[next] = Guard then 
+            acc
+        else
+            let extraBlockMap = 
+                baseSpaceMap
+                |> Map.add next Obstruction
+
+            let (_, looped) = GetVisitedSpaces extraBlockMap
+            if looped then 
+                acc + 1
+            else 
+                acc
+
+    visitedSpaces
+    |> Set.fold foldFunc 0
