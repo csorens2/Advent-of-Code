@@ -18,9 +18,7 @@ let ``Part2 Example`` () =
     let input = ParseInput("Example.txt")
     Assert.Equal(6, Part2 input)
 
-(* Test takes 1.5 mins
 [<Fact>]
 let ``Part2 Input`` () = 
     let input = ParseInput("Input.txt")
     Assert.Equal(1443, Part2 input)
-*)

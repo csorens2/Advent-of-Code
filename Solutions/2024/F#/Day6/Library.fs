@@ -88,9 +88,6 @@ let GetVisitedSpaces (spaceMap: Map<(int*int), Space>) =
 
     (parsedVisitedSpaces, looped)
 
-
-
-
 let Part1 input = 
     let spaceMap = GetSpaceMap input
     let (visitedSpaces, _) = GetVisitedSpaces spaceMap
@@ -100,6 +97,28 @@ let Part2 input =
     let baseSpaceMap = GetSpaceMap input
     let (visitedSpaces, _) = GetVisitedSpaces baseSpaceMap
 
+    let mapFunc next = 
+        if baseSpaceMap[next] = Guard then 
+            0
+        else 
+            let extraBlockMap = 
+                baseSpaceMap
+                |> Map.add next Obstruction
+
+            let (_, looped) = GetVisitedSpaces extraBlockMap
+            if looped then 
+                1
+            else 
+                0
+
+    visitedSpaces
+    |> Set.toArray
+    |> Array.Parallel.map mapFunc
+    |> Array.Parallel.sum
+
+    // Original serial version
+    // Went from 90 secs to 60
+    (*
     let foldFunc acc next = 
         if baseSpaceMap[next] = Guard then 
             acc
@@ -116,3 +135,4 @@ let Part2 input =
 
     visitedSpaces
     |> Set.fold foldFunc 0
+    *)
