@@ -2,6 +2,8 @@
 
 open System.IO
 
+type Point = (int*int)
+
 type Space = 
     | Open
     | Obstruction
@@ -25,29 +27,31 @@ let ParseInput filepath =
         |> Seq.toList
         |> List.map convertChar
         |> List.toArray
+    let spaceArray = 
+        File.ReadLines(filepath)
+        |> Seq.toList
+        |> List.map parseLine
+        |> List.toArray
 
-    File.ReadLines(filepath)
-    |> Seq.toList
-    |> List.map parseLine
-    |> List.toArray
-
-let Rotate currDirection = 
-    match currDirection with 
-    | North -> East
-    | East -> South
-    | South -> West
-    | West -> North
-
-let GetSpaceMap (input: Space array array) = 
-    let spaceSeq = seq {
-        for y in 0..input.Length - 1 do 
-            for x in 0..input[0].Length - 1 do 
-                yield ((y,x), input[y][x])
+    seq {
+        for y in 0..spaceArray.Length - 1 do 
+            for x in 0..spaceArray[0].Length - 1 do 
+                yield ((y,x), spaceArray[y][x])
     }
-    Map.ofSeq spaceSeq
+    |> Map.ofSeq
+
+
+
 
 // Returns (VisitedSpaces, didItLoop)
-let GetVisitedSpaces (spaceMap: Map<(int*int), Space>) = 
+let GetVisitedSpaces (spaceMap: Map<Point, Space>) = 
+    let rotate currDirection = 
+        match currDirection with 
+        | North -> East
+        | East -> South
+        | South -> West
+        | West -> North
+
     let rec travel y x direction (visitedSpaces: Set<int*int*Direction>) =         
         if visitedSpaces.Contains (y,x,direction) then 
             (visitedSpaces, true)
@@ -67,7 +71,7 @@ let GetVisitedSpaces (spaceMap: Map<(int*int), Space>) =
             else if spaceMap[nextPoint] = Open || spaceMap[nextPoint] = Guard then 
                 travel nextY nextX direction nextVisitedSpaces
             else 
-                travel y x (Rotate direction) nextVisitedSpaces
+                travel y x (rotate direction) nextVisitedSpaces
 
     let ((guardY, guardX), _) = 
         spaceMap
@@ -88,21 +92,19 @@ let GetVisitedSpaces (spaceMap: Map<(int*int), Space>) =
 
     (parsedVisitedSpaces, looped)
 
-let Part1 input = 
-    let spaceMap = GetSpaceMap input
-    let (visitedSpaces, _) = GetVisitedSpaces spaceMap
+let Part1 (input: Map<Point, Space>) = 
+    let (visitedSpaces, _) = GetVisitedSpaces input
     visitedSpaces.Count
 
-let Part2 input = 
-    let baseSpaceMap = GetSpaceMap input
-    let (visitedSpaces, _) = GetVisitedSpaces baseSpaceMap
+let Part2 (input: Map<Point, Space>) = 
+    let (visitedSpaces, _) = GetVisitedSpaces input
 
     let mapFunc next = 
-        if baseSpaceMap[next] = Guard then 
+        if input[next] = Guard then 
             0
         else 
             let extraBlockMap = 
-                baseSpaceMap
+                input
                 |> Map.add next Obstruction
 
             let (_, looped) = GetVisitedSpaces extraBlockMap
