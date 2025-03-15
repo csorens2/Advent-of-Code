@@ -29,7 +29,7 @@ let Part1 input =
     |> List.sum
 
 let Part2 input = 
-    let rec traverseFloors (remainingInstructions: Instruction list) (floor: int) (pos: int) = 
+    let rec traverseFloors (remainingInstructions: Instruction list) floor pos = 
         if remainingInstructions.IsEmpty then 
             failwith "Never reached basement"
         else 
