@@ -11,4 +11,4 @@ let ``Part1 Input`` () =
 [<Fact>]
 let ``Part2 Input`` () = 
     let input = ParseInput("Input.txt")
-    Assert.Equal(0, Part2 input)
+    Assert.Equal(3842356, Part2 input)
