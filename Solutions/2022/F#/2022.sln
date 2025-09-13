@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35707.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Day1", "Libraries\Day1\Day1.fsproj", "{F491E6BB-FC08-4E76-9A5B-C4B7EDC97E6D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{C5B23519-0BC3-4BC6-B8E4-D755E6244D76}"
+	ProjectSection(SolutionItems) = preProject
+		BaseProgram.txt = BaseProgram.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{678157C9-16AE-4D0E-9FCA-05767084DD55}"
+	ProjectSection(SolutionItems) = preProject
+		BaseTests.txt = BaseTests.txt
+	EndProjectSection
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Day1-Tests", "Tests\Day1-Tests\Day1-Tests.fsproj", "{D3137203-9161-431E-8E54-8BC078370FE7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F491E6BB-FC08-4E76-9A5B-C4B7EDC97E6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F491E6BB-FC08-4E76-9A5B-C4B7EDC97E6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F491E6BB-FC08-4E76-9A5B-C4B7EDC97E6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F491E6BB-FC08-4E76-9A5B-C4B7EDC97E6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3137203-9161-431E-8E54-8BC078370FE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3137203-9161-431E-8E54-8BC078370FE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3137203-9161-431E-8E54-8BC078370FE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3137203-9161-431E-8E54-8BC078370FE7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F491E6BB-FC08-4E76-9A5B-C4B7EDC97E6D} = {C5B23519-0BC3-4BC6-B8E4-D755E6244D76}
+		{D3137203-9161-431E-8E54-8BC078370FE7} = {678157C9-16AE-4D0E-9FCA-05767084DD55}
+	EndGlobalSection
+EndGlobal
