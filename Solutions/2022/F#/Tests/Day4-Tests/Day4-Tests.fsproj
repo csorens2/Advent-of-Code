@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <RootNamespace>Day3_Tests</RootNamespace>
+    <RootNamespace>Day4_Tests</RootNamespace>
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Libraries\Day3\Day3.fsproj" />
+    <ProjectReference Include="..\..\Libraries\Day4\Day4.fsproj" />
   </ItemGroup>
 
 </Project>
