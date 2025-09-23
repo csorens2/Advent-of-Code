@@ -1,0 +1,13 @@
+﻿module Day7
+
+open System.IO
+
+
+let ParseInput filepath = 
+    File.ReadLines(filepath)
+
+let Part1 input = 
+    0
+
+let Part2 input = 
+    0
