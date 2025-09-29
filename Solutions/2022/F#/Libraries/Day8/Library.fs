@@ -20,7 +20,7 @@ let InsideGrid grid (y,x) =
     else
         true
 
-let Part1 (input: int array array) = 
+let Part1 input = 
     let processTree (y,x) = 
         let rec toEdge baseHeight nextTreeFunc (y,x) = 
             if not (InsideGrid input (y,x)) then 
@@ -31,23 +31,20 @@ let Part1 (input: int array array) =
                     toEdge baseHeight nextTreeFunc (nextTreeFunc (y,x))
                 else
                     false
-        let traversalFunction = [
+        [
             fun (y,x) -> (y+1, x);
             fun (y,x) -> (y-1, x);
             fun (y,x) -> (y, x+1);
             fun (y,x) -> (y, x-1);
         ]
-        traversalFunction
         |> List.map (fun travFunc -> toEdge (input.[y].[x]) travFunc (travFunc (y,x)))
         |> List.fold (fun acc next -> acc || next) false
     
-    let toProcess = seq {
+    seq {
         for y = 0 to (Array.length input) - 1 do 
             for x = 0 to (Array.length input.[0]) - 1 do  
                 yield (y,x)
     }
-
-    toProcess
     |> Seq.map processTree
     |> Seq.map (fun seenFromEdge -> if seenFromEdge then 1 else 0)
     |> Seq.sum
@@ -64,22 +61,19 @@ let Part2 input =
                 else
                     1
                     
-        let traversalFunction = [
+        [
             fun (y,x) -> (y+1, x);
             fun (y,x) -> (y-1, x);
             fun (y,x) -> (y, x+1);
             fun (y,x) -> (y, x-1);
         ]
-        traversalFunction
         |> List.map (fun travFunc -> countTrees (input.[y].[x]) travFunc (travFunc (y,x)))
         |> List.fold (fun acc next -> acc * next) 1
 
-    let toProcess = seq {
+    seq {
         for y = 0 to (Array.length input) - 1 do 
             for x = 0 to (Array.length input.[0]) - 1 do  
                 yield (y,x)
     }
-
-    toProcess
     |> Seq.map processTree
     |> Seq.max
