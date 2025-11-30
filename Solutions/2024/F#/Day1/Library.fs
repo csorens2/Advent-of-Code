@@ -8,8 +8,8 @@ let ParseInput filepath =
         File.ReadLines(filepath)
         |> Seq.toList
 
-    let rec parseLines (remainingLines: string list) leftList rightList = 
-        if remainingLines.IsEmpty then 
+    let rec parseLines remainingLines leftList rightList = 
+        if List.isEmpty remainingLines then 
             (leftList, rightList)
         else
             let nums = Regex(@"(\d+)[ ]+(\d+)").Match(remainingLines.Head)
@@ -21,16 +21,11 @@ let ParseInput filepath =
 
 let Part1 input = 
     let (leftList, rightList) = input
-    let leftListSorted = 
-        leftList 
-        |> List.sort
-    let rightListSorted = 
-        rightList
-        |> List.sort
 
-    let zippedList =
-        leftListSorted
-        |> List.zip rightListSorted
+    let leftListSorted = List.sort leftList
+    let rightListSorted = List.sort rightList
+
+    let zippedList = List.zip leftListSorted rightListSorted
 
     zippedList
     |> List.map (fun (leftNum, rightNum) -> abs (leftNum - rightNum))
@@ -39,15 +34,15 @@ let Part1 input =
 let Part2 input =
     let (leftList, rightList) = input
 
-    let numMapFolder (currMap: Map<int, int>) nextNum = 
-        match currMap.TryFind nextNum with 
+    let numMapFolder currMap nextNum = 
+        match Map.tryFind nextNum currMap with 
         | Some(numValue) -> Map.add nextNum (numValue + 1) currMap
         | None -> Map.add nextNum 1 currMap
 
     let rightMap = List.fold numMapFolder Map.empty rightList
 
-    let getSimilarityScore (rightMap: Map<int, int>) leftNum  = 
-        match rightMap.TryFind leftNum with 
+    let getSimilarityScore rightMap leftNum  = 
+        match Map.tryFind  leftNum rightMap with 
         | Some(rightValue) -> leftNum * rightValue
         | None -> 0
 
