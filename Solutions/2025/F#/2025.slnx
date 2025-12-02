@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Libraries/">
+    <File Path="Libraries/BaseProgram.txt" />
+    <Project Path="Libraries/Day1/Day1.fsproj" Id="812f5a8a-ca8a-41d4-95ed-41b4313abfee" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <File Path="Tests/BaseTests.txt" />
+    <Project Path="Tests/Day1-Tests/Day1-Tests.fsproj" Id="23d2c910-7cf1-4a6c-8afa-c04cff45a08a" />
+  </Folder>
+</Solution>
