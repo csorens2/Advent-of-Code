@@ -3,10 +3,12 @@
     <File Path="Libraries/BaseProgram.txt" />
     <Project Path="Libraries/Day1/Day1.fsproj" Id="812f5a8a-ca8a-41d4-95ed-41b4313abfee" />
     <Project Path="Libraries/Day2/Day2.fsproj" Id="1529877e-c20b-4671-97be-30da7bdc356c" />
+    <Project Path="Libraries/Day3/Day3.fsproj" Id="fa7e303d-2e45-4c87-9106-ab155dc69738" />
   </Folder>
   <Folder Name="/Tests/">
     <File Path="Tests/BaseTests.txt" />
     <Project Path="Tests/Day1-Tests/Day1-Tests.fsproj" Id="23d2c910-7cf1-4a6c-8afa-c04cff45a08a" />
     <Project Path="Tests/Day2-Tests/Day2-Tests.fsproj" Id="2014e707-060a-4e27-b5b0-eaca205c9567" />
+    <Project Path="Tests/Day3-Tests/Day3-Tests.fsproj" Id="7de387d7-cc0f-4a86-9695-69edc4724492" />
   </Folder>
 </Solution>
