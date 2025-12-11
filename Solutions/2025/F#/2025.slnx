@@ -6,6 +6,7 @@
     <Project Path="Libraries/Day3/Day3.fsproj" Id="fa7e303d-2e45-4c87-9106-ab155dc69738" />
     <Project Path="Libraries/Day4/Day4.fsproj" Id="15d2ff59-a3bd-4949-9818-bbb0c6f66707" />
     <Project Path="Libraries/Day5/Day5.fsproj" Id="af99dc0f-689c-4fe5-8491-ebc6aabd6d71" />
+    <Project Path="Libraries/Day6/Day6.fsproj" Id="d51345b1-91ab-424e-a821-57e7fd65f634" />
   </Folder>
   <Folder Name="/Tests/">
     <File Path="Tests/BaseTests.txt" />
@@ -14,5 +15,6 @@
     <Project Path="Tests/Day3-Tests/Day3-Tests.fsproj" Id="7de387d7-cc0f-4a86-9695-69edc4724492" />
     <Project Path="Tests/Day4-Tests/Day4-Tests.fsproj" Id="de9b9008-107c-40ce-b5ec-346ab684a51b" />
     <Project Path="Tests/Day5-Tests/Day5-Tests.fsproj" Id="822f6471-0b40-41e9-bef5-e610b5f27402" />
+    <Project Path="Tests/Day6-Tests/Day6-Tests.fsproj" Id="3fb2fbfc-db09-4dd4-98b3-2fc3ef5cc610" />
   </Folder>
 </Solution>
