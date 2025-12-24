@@ -52,29 +52,29 @@ def ParseFile(fileName: String): List[Point] =
     .map(parseLine)
     .toList
 
-def Part1(input: List[Point]): Int = {
-  val inputMap =
-    input
-      .zipWithIndex
-      .toMap
+def Part1(input: List[Point], numConnections: Int): Int = {
+  val inputArray = input.toArray
 
-  val pointPairs =
-    for {
-      i <- input
-      j <- input
-      if i != j
-    } yield (i,j)
+  var pointPairs = List.empty[(Point, Point)]
+  for (i <- inputArray.indices) {
+    for (j <- i+1 until inputArray.length) {
+      pointPairs = (inputArray(i), inputArray(j)) :: pointPairs
+    }
+  }
 
   val sortedPointPairs =
     pointPairs
       .sortBy((p1, p2) => GetDistance(p1, p2))
-      .take(10)
+      .take(numConnections)
 
+  val setMap =
+    input
+      .zipWithIndex
+      .toMap
   val disjointSet = DisjointSet(input.length)
+
   for ((pointA, pointB) <- sortedPointPairs) {
-    val test1 = inputMap(pointA)
-    val test2 = inputMap(pointB)
-    disjointSet.Union(inputMap(pointA), inputMap(pointB))
+    disjointSet.Union(setMap(pointA), setMap(pointB))
   }
 
   val parentList =
@@ -82,12 +82,13 @@ def Part1(input: List[Point]): Int = {
       i <- disjointSet.parent.indices
     } yield disjointSet.Find(i)
 
-  val parentCount =
-    parentList
-      .groupBy(identity)
-
-
-  ???
+  parentList
+    .groupBy(identity)
+    .map((_, countSet) => countSet.length)
+    .toSeq
+    .sorted(Ordering[Int].reverse)
+    .take(3)
+    .product
 }
 
 def Part2(): Int =
