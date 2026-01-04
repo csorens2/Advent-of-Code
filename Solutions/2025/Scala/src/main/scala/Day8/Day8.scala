@@ -1,24 +1,28 @@
 package Day8
 
 import scala.io.Source
-import math.{sqrt}
 
 case class Point(X: Int, Y: Int, Z: Int)
 
-def GetDistance(p1: Point, p2: Point): Double =
-  val dx = p2.X - p1.X
-  val dy = p2.Y - p1.Y
-  val dz = p2.Z - p1.Z
-  sqrt(dx * dx + dy * dy + dz * dz)
+/**
+ * Due to needing to use longs to deal with large numbers, we can't get the actual distance.
+ * This is sufficient when only using the Distance-Squared for comparisons.
+  */
+def GetDistanceSquared(p1: Point, p2: Point): Long =
+  val dx = (p2.X - p1.X).toLong
+  val dy = (p2.Y - p1.Y).toLong
+  val dz = (p2.Z - p1.Z).toLong
+  dx * dx + dy * dy + dz * dz
 
 class DisjointSet(val n: Int) {
-  private val parent: Array[Int] = (0 to n).toArray
+  private val parent: Array[Int] = (0 until n).toArray
   private val rank: Array[Int] = Array.fill(n)(0)
 
   def Find(x: Int): Int =
-    if (parent(x) != x)
-      parent(x) = Find(parent(x))
-    parent(x)
+    if(parent(x) == x)
+      x
+    else
+      Find(parent(x))
 
   def Union(x: Int, y: Int): Unit =
     val rootX = Find(x)
@@ -67,7 +71,7 @@ def Part1(input: List[Point], numConnections: Int): Int = {
 
   val sortedPointPairs =
     pointPairs
-      .sortBy((p1, p2) => GetDistance(p1, p2))
+      .sortBy((p1, p2) => GetDistanceSquared(p1, p2))
       .take(numConnections)
 
   val setMap =
