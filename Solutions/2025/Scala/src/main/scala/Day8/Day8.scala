@@ -1,7 +1,7 @@
 package Day8
 
 import scala.io.Source
-import math.{sqrt, pow}
+import math.{sqrt}
 
 case class Point(X: Int, Y: Int, Z: Int)
 
@@ -9,11 +9,11 @@ def GetDistance(p1: Point, p2: Point): Double =
   val dx = p2.X - p1.X
   val dy = p2.Y - p1.Y
   val dz = p2.Z - p1.Z
-  math.sqrt(dx * dx + dy * dy + dz * dz)
+  sqrt(dx * dx + dy * dy + dz * dz)
 
 class DisjointSet(val n: Int) {
-  val parent: Array[Int] = (0 to n).toArray
-  val rank: Array[Int] = Array.fill(n)(0)
+  private val parent: Array[Int] = (0 to n).toArray
+  private val rank: Array[Int] = Array.fill(n)(0)
 
   def Find(x: Int): Int =
     if (parent(x) != x)
@@ -36,6 +36,9 @@ class DisjointSet(val n: Int) {
 
   def SameSet(x: Int, y: Int): Boolean =
     Find(x) == Find(y)
+
+  def GetParentArray(): Array[Int] =
+    parent
 }
 
 def ParseFile(fileName: String): List[Point] =
@@ -79,16 +82,18 @@ def Part1(input: List[Point], numConnections: Int): Int = {
 
   val parentList =
     for {
-      i <- disjointSet.parent.indices
+      i <- disjointSet.GetParentArray().indices
     } yield disjointSet.Find(i)
 
+  val test =
   parentList
     .groupBy(identity)
     .map((_, countSet) => countSet.length)
     .toSeq
     .sorted(Ordering[Int].reverse)
-    .take(3)
-    .product
+
+
+    test.take(3).product
 }
 
 def Part2(): Int =
