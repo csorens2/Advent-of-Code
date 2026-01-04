@@ -5,8 +5,10 @@ import scala.io.Source
 case class Point(X: Int, Y: Int, Z: Int)
 
 /**
- * Due to needing to use longs to deal with large numbers, we can't get the actual distance.
- * This is sufficient when only using the Distance-Squared for comparisons.
+ * We need to use longs in this function to deal with numbers too big for doubles to handle.
+ * As a result, we can't use sqrt since there isn't a version of it for longs.
+ * However, since the distance between two points is only used to sort point-pairs,
+ * the square of the distance will also work, so we return said square of distance.
   */
 def GetDistanceSquared(p1: Point, p2: Point): Long =
   val dx = (p2.X - p1.X).toLong
@@ -16,7 +18,7 @@ def GetDistanceSquared(p1: Point, p2: Point): Long =
 
 class DisjointSet(val n: Int) {
   private val parent: Array[Int] = (0 until n).toArray
-  private val rank: Array[Int] = Array.fill(n)(0)
+  private val count: Array[Int] = Array.fill(n)(1)
 
   def Find(x: Int): Int =
     if(parent(x) == x)
@@ -27,25 +29,31 @@ class DisjointSet(val n: Int) {
   def Union(x: Int, y: Int): Unit =
     val rootX = Find(x)
     val rootY = Find(y)
+
     if (rootX == rootY)
       return
-    if (rank(rootX) < rank(rootY))
+
+    val newCount = count(rootX) + count(rootY)
+    // We always want to join the smaller set into the bigger set for efficiency
+    if (count(rootX) < count(rootY)) {
       parent(rootX) = rootY
-    else if (rank(rootX) > rank(rootY))
+      count(rootY) = newCount
+    } else if (count(rootX) > count(rootY)) {
       parent(rootY) = rootX
-    else {
+      count(rootX) = newCount
+    } else { // Counts are equal, so the choice of root is arbitrary.
       parent(rootY) = rootX
-      rank(rootX) = rank(rootX) + 1
+      count(rootX) = newCount
     }
 
   def SameSet(x: Int, y: Int): Boolean =
     Find(x) == Find(y)
 
-  def GetParentArray(): Array[Int] =
-    parent
+  def GetCount(x: Int): Int =
+    count(Find(x))
 }
 
-def ParseFile(fileName: String): List[Point] =
+def ParseFile(fileName: String): Array[Point] =
   val resource = Source.getClass.getResource(fileName)
   val fileSource = Source.fromFile(resource.toURI)
 
@@ -57,48 +65,67 @@ def ParseFile(fileName: String): List[Point] =
   fileSource
     .getLines()
     .map(parseLine)
-    .toList
+    .toArray
 
-def Part1(input: List[Point], numConnections: Int): Int = {
-  val inputArray = input.toArray
-
+def GetSortedPointPairs(pointArray: Array[Point]): List[(Point, Point)] =
   var pointPairs = List.empty[(Point, Point)]
-  for (i <- inputArray.indices) {
-    for (j <- i+1 until inputArray.length) {
-      pointPairs = (inputArray(i), inputArray(j)) :: pointPairs
+  for (i <- pointArray.indices) {
+    for (j <- i + 1 until pointArray.length) {
+      pointPairs = (pointArray(i), pointArray(j)) :: pointPairs
     }
   }
+  pointPairs.sortBy((p1, p2) => GetDistanceSquared(p1, p2))
 
-  val sortedPointPairs =
-    pointPairs
-      .sortBy((p1, p2) => GetDistanceSquared(p1, p2))
-      .take(numConnections)
+def GetPointToDisjointSetIndexMap(input: Array[Point]): Map[Point, Int] =
+  input
+    .zipWithIndex
+    .toMap
 
-  val setMap =
-    input
-      .zipWithIndex
-      .toMap
+def Part1(input: Array[Point], numConnections: Int): Int = {
+  if (input.length < 3)
+    throw Exception("Part 1 requires a minimum of 3 objects")
+
+  val sortedPointPairs = GetSortedPointPairs(input)
+  val pointToDisjointSetIndexMap = GetPointToDisjointSetIndexMap(input)
   val disjointSet = DisjointSet(input.length)
 
-  for ((pointA, pointB) <- sortedPointPairs) {
-    disjointSet.Union(setMap(pointA), setMap(pointB))
+  for ((pointA, pointB) <- sortedPointPairs.take(numConnections)) {
+    disjointSet.Union(pointToDisjointSetIndexMap(pointA), pointToDisjointSetIndexMap(pointB))
   }
 
-  val parentList =
-    for {
-      i <- disjointSet.GetParentArray().indices
-    } yield disjointSet.Find(i)
-
-  val test =
-  parentList
-    .groupBy(identity)
-    .map((_, countSet) => countSet.length)
-    .toSeq
+  pointToDisjointSetIndexMap
+    .values
+    .toList
+    .map(disjointSetIndex => disjointSet.Find(disjointSetIndex))
+    .distinct
+    .map(rootDisjointSetIndex => disjointSet.GetCount(rootDisjointSetIndex))
     .sorted(Ordering[Int].reverse)
-
-
-    test.take(3).product
+    .take(3)
+    .product
 }
 
-def Part2(): Int =
-  ???
+def Part2(input: Array[Point]): Int =
+  if (input.length < 2)
+    throw Exception("Requires minimum 2 objects")
+
+  val sortedPointPairs = GetSortedPointPairs(input)
+  val pointToDisjointSetIndexMap = GetPointToDisjointSetIndexMap(input)
+  val disjointSet = DisjointSet(input.length)
+
+  var currentHead: (Point,Point) = null
+  var currentList = sortedPointPairs
+  var lastSetCount = 0
+  while (lastSetCount != input.length) {
+    currentHead = currentList.head
+
+    val (currentHeadA, currentHeadB) = currentHead
+    val setNumA = pointToDisjointSetIndexMap(currentHeadA)
+    val setNumB = pointToDisjointSetIndexMap(currentHeadB)
+    disjointSet.Union(setNumA, setNumB)
+
+    lastSetCount = disjointSet.GetCount(setNumA)
+    currentList = currentList.tail
+  }
+
+  val (finalA, finalB) = currentHead
+  finalA.X * finalB.X
