@@ -1,11 +1,16 @@
 ﻿module Day6
 
+open System
 open System.IO
 open System.Text.RegularExpressions
 
 type Operation = 
     | Add
     | Multiply
+
+let OperationMap = 
+    [('+', Add); ('*', Multiply)]
+    |> Map.ofList
 
 type Problem = {
     Numbers: int64 list
@@ -14,10 +19,21 @@ type Problem = {
 
 let ParseInput filepath =
     File.ReadLines(filepath)
+    |> Seq.toList
+
+let CombineProblems problems = 
+    let foldProblem op acc nextNum = 
+        match op with 
+        | Multiply -> acc * nextNum
+        | Add -> acc + nextNum
+
+    problems
+    |> List.map (fun nextProblem -> List.reduce (foldProblem nextProblem.Operation) nextProblem.Numbers)
+    |> List.sum
 
 let Part1 input = 
 
-    let generateProblemLists (rawInput: string seq) = 
+    let generateProblemLists (rawInput: string list) = 
 
         let numLineRegex = Regex("(\d+)")
         let operationLineRegex = Regex("([*|+])")
@@ -30,7 +46,7 @@ let Part1 input =
         let processOperationLine line = 
             line
             |> Seq.filter (fun lineChar -> lineChar <> ' ')
-            |> Seq.map (fun linechar -> if linechar = '*' then Multiply else Add) 
+            |> Seq.map (fun linechar -> Map.find linechar OperationMap) 
 
         let numArrays = 
             rawInput
@@ -45,29 +61,22 @@ let Part1 input =
             |> Seq.head
             |> Seq.toArray
 
-        let rec generateProblems i = seq {
-            if i < Array.length operationArray then 
+        let rec generateProblems index = seq {
+            if index < Array.length operationArray then 
                 yield 
                     {
-                        Problem.Numbers = List.map (fun numArray -> Array.item i numArray) numArrays
-                        Operation = Array.item i operationArray
+                        Problem.Numbers = List.map (fun numArray -> Array.item index numArray) numArrays
+                        Operation = Array.item index operationArray
                     }
-                yield! generateProblems (i+1)
+                yield! generateProblems (index+1)
         }
 
         generateProblems 0
         |> Seq.toList
             
-    let foldProblem op acc nextNum = 
-        match op with 
-        | Multiply -> acc * nextNum
-        | Add -> acc + nextNum
+    CombineProblems (generateProblemLists input)
 
-    generateProblemLists input
-    |> List.map (fun nextProblem -> List.reduce (foldProblem nextProblem.Operation) nextProblem.Numbers)
-    |> List.sum
-
-let Part2 (input: string List) = 
+let Part2 input = 
     
     let generateProblemLists rawInput = 
         let rawArrays = 
@@ -75,16 +84,57 @@ let Part2 (input: string List) =
             |> List.map Seq.toArray
             |> List.toArray
 
-        
+        let getColumnChars index = 
+            rawArrays
+            |> Array.map (fun lineArray -> lineArray[index])
 
-        let generateProblems (currIndex: int) (beginningIndex: int option) (endIndex: int option) = 
-            if 
-                0
-            else
+        let rec generateProblems currIndex beginningIndex endIndex = seq {
+            if not (Option.isNone beginningIndex && Option.isNone endIndex && currIndex = Array.length (rawArrays[0])) then 
+                
+                if Option.isNone beginningIndex && Option.isNone endIndex then 
+                    let currIndexColumn = getColumnChars currIndex
 
+                    let isStartColumn = Array.exists (fun columnChar -> List.contains columnChar ['*'; '+']) currIndexColumn
+                    if isStartColumn then 
+                        yield! generateProblems (currIndex + 1) (Some(currIndex)) None
+                    else 
+                        yield! generateProblems (currIndex + 1) None None
 
+                else if Option.isSome beginningIndex && Option.isNone endIndex then 
+                    if currIndex = Array.length (rawArrays[0]) then 
+                        yield! generateProblems (currIndex) beginningIndex (Some(currIndex - 1))
+                    else
+                        let currIndexColumn = getColumnChars currIndex
+                        let isEndColumn = Array.forall (fun columnChar -> columnChar = ' ') currIndexColumn
+                        if isEndColumn then 
+                            yield! generateProblems (currIndex + 1) beginningIndex (Some(currIndex - 1))
+                        else
+                            yield! generateProblems (currIndex + 1) beginningIndex None
 
-        
-        0
+                else if Option.isSome beginningIndex && Option.isSome endIndex then 
+                    let operation = 
+                        match Array.last (getColumnChars beginningIndex.Value) with 
+                        | '*' -> Multiply
+                        | '+' -> Add
+                        | unknown -> failwith $"Unknown operation '{unknown}'"
+                    
+                    let foldColumn acc next =
+                        if Char.IsNumber next then 
+                            acc + (string next)
+                        else
+                            acc
+                        
+                    let problemNumbers = 
+                        [beginningIndex.Value..endIndex.Value]
+                        |> List.map getColumnChars
+                        |> List.map (fun columnChars -> Array.fold foldColumn "" columnChars)
+                        |> List.map int64
+
+                    yield {Problem.Numbers = problemNumbers; Operation = operation}
+                    yield! generateProblems (currIndex) None None
+                else 
+                    failwith "Somehow have the end-index without the beginning"
+        }
+        generateProblems 0 None None
     
-    0
+    CombineProblems (Seq.toList (generateProblemLists input))
