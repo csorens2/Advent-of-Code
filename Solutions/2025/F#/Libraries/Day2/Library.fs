@@ -44,19 +44,17 @@ let Part2 (input: (int64*int64) list) =
                 let checkChunkLength chunkLength = 
                     if numLength % chunkLength <> 0 then 
                         false
-                    else if chunkLength = numLength then 
-                        false
                     else
                         let numChunkArrays = Seq.chunkBySize chunkLength numString
                         let numStrings = Seq.map (fun (chunkArray: char array) -> System.String chunkArray) numChunkArrays
-                        let toCheck = Seq.head numStrings
-                        if Seq.forall (fun chunkToCheck -> toCheck = chunkToCheck) numStrings then 
+                        let baseChunk = Seq.head numStrings
+                        if Seq.forall (fun chunkToCheck -> baseChunk = chunkToCheck) numStrings then 
                             true
                         else 
                             false
                 
                 let idInvalid = 
-                    [1..numLength]
+                    [1..(numLength-1)]
                     |> List.map checkChunkLength
                     |> List.filter id
                     |> List.isEmpty

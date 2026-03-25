@@ -1,0 +1,29 @@
+import DayX.DayX;
+import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
+
+class DayXTests {
+
+    @Test
+    void Part1TestInput() {
+        var day = new Day();
+        var input = day.ParseInput("Day1/TestInput.txt");
+        var result = day.Part1(input);
+        assertEquals(0, result);
+    }
+
+    @Test
+    void Part1() {
+
+    }
+
+    @Test
+    void Part2TestInput() {
+
+    }
+
+    @Test
+    void Part2() {
+
+    }
+}
