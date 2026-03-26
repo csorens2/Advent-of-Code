@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Libraries/">
+    <Project Path="2025/Libraries/Day1/Day1/Day1.csproj" Id="0cf4bcf0-5765-4dc8-a83c-0528c6006497" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="2025/Tests/Day1Tests/Day1-Tests.csproj" Id="2c0303fc-3d77-41ab-bc54-63bcae70b350" />
+  </Folder>
+</Solution>
