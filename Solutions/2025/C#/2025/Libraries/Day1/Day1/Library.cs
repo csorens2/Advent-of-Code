@@ -90,7 +90,7 @@ namespace Day1
             foreach(Rotation rotation in input)
             {
                 var finalAmount = rotation.amount;
-                if (finalAmount > 100)
+                while (finalAmount > 100)
                 {
                     finalAmount -= 100;
                     zeroCount++;
