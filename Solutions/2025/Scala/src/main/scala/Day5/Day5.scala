@@ -36,7 +36,6 @@ def Part1(input: (List[(Long, Long)], List[Long])): Long =
     .count(processIngredient)
 
 def Part2(input: (List[(Long, Long)], List[Long])): Long = {
-
   def combineRanges(curr: (Long, Long), remaining: List[(Long, Long)]): LazyList[(Long, Long)] =
     if remaining.isEmpty then
       LazyList(curr)
@@ -58,13 +57,11 @@ def Part2(input: (List[(Long, Long)], List[Long])): Long = {
       else
         curr #:: combineRanges(remaining.head, remaining.tail)
 
-
   val (ranges, _) = input
   val sortedRanges = ranges.sortBy((left, _) => left)
 
-  val test = combineRanges(sortedRanges.head, sortedRanges.tail).toList
-
-  test
+  combineRanges(sortedRanges.head, sortedRanges.tail)
+    .toList
     .map((left, right) => right - left + 1)
     .sum
 }
