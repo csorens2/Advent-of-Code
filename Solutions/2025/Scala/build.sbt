@@ -1,10 +1,10 @@
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.3.7"
+ThisBuild / scalaVersion := "3.3.8"
 
 lazy val root = (project in file("."))
   .settings(
     name := "2025"
   )
 
-libraryDependencies += "org.scalameta" %% "munit" % "1.2.1" % Test
+libraryDependencies += "org.scalameta" %% "munit" % "1.3.3" % Test
