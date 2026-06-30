@@ -2,7 +2,7 @@ package Day<X>
 
 import scala.io.Source
 
-def ParseFile(fileName: String): Unit =
+def ParseFile(fileName: String) =
   ???
 
 def Part1(): Int =
