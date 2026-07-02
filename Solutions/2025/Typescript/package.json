@@ -13,9 +13,11 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "effect": "^3.21.4",
     "fp-ts": "^2.16.11"
   },
   "devDependencies": {
+    "@types/node": "^26.1.0",
     "vitest": "^4.1.9"
   }
 }
