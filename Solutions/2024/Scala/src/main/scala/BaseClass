@@ -2,9 +2,10 @@ package Day<X>
 
 import scala.io.Source
 
-def parseFile(fileName: String): Unit =
+def ParseFile(fileName: String): Unit =
   val resource = Source.getClass.getResource(fileName)
   val fileSource = Source.fromFile(resource.toURI)
+  val lines = fileSource.getLines()
   ???
 
 def Part1(): Int =
