@@ -7,7 +7,7 @@ class Day<x>Tests extends munit.FunSuite:
     assertEquals(true, false)
     //val input = Day<x>.ParseFile("/Day<x>/TestInput1.txt")
     //val obtained = Part1(input)
-    //val expected = 12
+    //val expected =
     //assertEquals(obtained, expected)
   }
 
