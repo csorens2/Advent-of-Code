@@ -27,7 +27,7 @@ def ParseFile(fileName: String): Vector[DiskMapEntry] =
           FreeSpace(nextNum)
       val nextID =
         if isFile then
-          (currFileID + 1) % 10
+          currFileID + 1
         else
           currFileID
 
@@ -42,37 +42,37 @@ def ParseFile(fileName: String): Vector[DiskMapEntry] =
 
   BuildEntryList(baseList, true, 0, List.empty).reverse.toVector
 
-def Part1(input: Vector[DiskMapEntry]): Int =
+def Part1(input: Vector[DiskMapEntry]): Long =
   @tailrec
-  def processVector(remainingVector: Vector[DiskMapEntry], leftIndex: Int, rightIndex: Int, finalFileList: List[File]): List[File] =
+  def processVector(entryVector: Vector[DiskMapEntry], leftIndex: Int, rightIndex: Int, finalFileList: List[File]): List[File] =
     if rightIndex == leftIndex then
-      remainingVector(leftIndex) match
+      entryVector(leftIndex) match
         case File(id,length) => File(id, length) :: finalFileList
         case FreeSpace(_) => finalFileList
     else
-      val nextLeft = remainingVector(leftIndex)
-      val nextRight = remainingVector(rightIndex)
+      val nextLeft = entryVector(leftIndex)
+      val nextRight = entryVector(rightIndex)
       if !nextLeft.isInstanceOf[FreeSpace] then
-        processVector(remainingVector, leftIndex + 1, rightIndex, nextLeft.asInstanceOf[File] :: finalFileList)
+        processVector(entryVector, leftIndex + 1, rightIndex, nextLeft.asInstanceOf[File] :: finalFileList)
       else if !nextRight.isInstanceOf[File] then
-        processVector(remainingVector, leftIndex, rightIndex - 1, finalFileList)
+        processVector(entryVector, leftIndex, rightIndex - 1, finalFileList)
       else
         val leftSpace = nextLeft.asInstanceOf[FreeSpace].Length
         val rightFile = nextRight.asInstanceOf[File]
         if rightFile.Length < leftSpace then
-          val nextRemainingVector = remainingVector.updated(leftIndex, FreeSpace(leftSpace - rightFile.Length))
+          val nextRemainingVector = entryVector.updated(leftIndex, FreeSpace(leftSpace - rightFile.Length))
           processVector(nextRemainingVector, leftIndex, rightIndex - 1, rightFile :: finalFileList)
         else if leftSpace < rightFile.Length then
-          val nextRemainingVector = remainingVector.updated(rightIndex, File(rightFile.ID, rightFile.Length - leftSpace))
+          val nextRemainingVector = entryVector.updated(rightIndex, File(rightFile.ID, rightFile.Length - leftSpace))
           val nextFile = File(rightFile.ID, leftSpace)
           processVector(nextRemainingVector, leftIndex + 1, rightIndex, nextFile.asInstanceOf[File] :: finalFileList)
-        else // Right file fits perfectly
-          processVector(remainingVector, leftIndex + 1, rightIndex - 1, rightFile :: finalFileList)
+        else  // Right file fits perfectly
+          processVector(entryVector, leftIndex + 1, rightIndex - 1, rightFile :: finalFileList)
 
   val rawFileList = processVector(input, 0, input.length - 1, List.empty).reverse
 
-  var position = 0
-  var checksum = 0
+  var position = 0L
+  var checksum = 0L
   for(file <- rawFileList)
     for (i <- 0 until file.Length)
       checksum = checksum + (position * file.ID)
