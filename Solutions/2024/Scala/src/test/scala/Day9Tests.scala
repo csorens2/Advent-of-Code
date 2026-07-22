@@ -1,5 +1,7 @@
 import Day9.*
 
+import com.google.common.base.Stopwatch
+
 class Day9Tests extends munit.FunSuite:
 
   test("Part1 TestInput") {
