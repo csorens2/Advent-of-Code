@@ -6,13 +6,12 @@ open Day9
 [<Fact>]
 let ``Part1 Example`` () = 
     let input = ParseInput("Example.txt")
-    Assert.Equal(0, Part1 input)
+    Assert.Equal(1928L, Part1 input)
 
 [<Fact>]
 let ``Part1 Input`` () = 
     let input = ParseInput("Input.txt")
-    //Assert.Equal(, Part1 input)
-    Assert.Fail("Not implemented")
+    Assert.Equal(6390180901651L, Part1 input)
 
 [<Fact>]
 let ``Part2 Example`` () = 

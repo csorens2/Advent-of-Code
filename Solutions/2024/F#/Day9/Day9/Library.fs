@@ -1,53 +1,74 @@
 ﻿module Day9
 
 open System.IO
+open FSharpx.Collections
 
-type DiskMapEntry = 
-    | File of ID: int * Length: int
-    | FreeSpace of Length: int
+type DiskMapSpace = 
+    | File of ID: int64
+    | FreeSpace
 
 let ParseInput filepath = 
-    let rec BuildEntryList remainingNums isFile currFileID finalEntryList = 
+    let rec buildDiskMapVector remainingNums isFile currFileID finalList = 
         if List.isEmpty remainingNums then 
-            finalEntryList
+            finalList
+            |> List.rev
+            |> PersistentVector.ofSeq
         else
-            let nextNum = remainingNums.Head
-            let nextEntry = 
+            let nextNum = remainingNums.Head 
+
+            let nextListFolder = 
                 if isFile then 
-                    File(currFileID, nextNum)
+                    fun acc _ -> File(currFileID) :: acc
                 else
-                    FreeSpace(nextNum)
+                    fun acc _ -> FreeSpace :: acc
+            let nextList = 
+                [0..(nextNum-1)]
+                |> List.fold nextListFolder finalList
+
             let nextID = 
                 if isFile then 
-                    (currFileID + 1) % 10
+                    currFileID + 1L
                 else
                     currFileID
-            BuildEntryList remainingNums.Tail (not isFile) nextID (nextEntry :: finalEntryList)
-    
+
+            buildDiskMapVector remainingNums.Tail (not isFile) nextID nextList
+            
     let baseList = 
         File.ReadLines(filepath)
         |> Seq.head
         |> Seq.map (fun intchar -> int intchar - int '0')
         |> Seq.toList
 
-    BuildEntryList baseList true 0 List.empty
-    |> List.rev
-    |> List.toArray
-
+    buildDiskMapVector baseList true 0 List.empty
 
 let Part1 input = 
+    
+    let rec moveBlocks (currVector: DiskMapSpace PersistentVector) leftIndex rightIndex = 
+        if leftIndex = rightIndex then 
+            currVector
+        else
+            if currVector[leftIndex].IsFile then 
+                moveBlocks currVector (leftIndex + 1) rightIndex
+            else if currVector[rightIndex].IsFreeSpace then 
+                moveBlocks currVector leftIndex (rightIndex - 1) 
+            else 
+                let nextArray = 
+                    currVector
+                    |> PersistentVector.update leftIndex currVector[rightIndex]
+                    |> PersistentVector.update rightIndex currVector[leftIndex]
+                moveBlocks nextArray (leftIndex + 1) (rightIndex - 1)
+    
+    let movedVector = moveBlocks input 0 (input.Length - 1)
 
-    let rec processArray remainingArray leftIndex rightIndex finalFileList = 
-        if rightIndex = leftIndex then 
-            match Array.get remainingArray leftIndex with 
-            | File(id, length) -> File(id, length) :: finalFileList
-            | FreeSpace(_) -> finalFileList
-        else    
-            let nextLeft = remainingArray[leftIndex]
+    let checksumFolder acc nextIndex = 
+        match movedVector[nextIndex] with 
+        | File(id) -> acc + ((int64 nextIndex) * id)
+        | FreeSpace -> acc
 
+    movedVector
+    |> PersistentVector.mapi (fun i _ -> i)
+    |> PersistentVector.fold checksumFolder 0L
 
-
-    0
 
 let Part2 input = 
     0

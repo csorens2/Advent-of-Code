@@ -64,33 +64,30 @@ def Part1(input: Vector[DiskMapSpace]): Long =
           currVector
             .updated(leftIndex, currVector(rightIndex))
             .updated(rightIndex, FreeSpace())
-        moveBlocks(nextVector, leftIndex + 1, rightIndex)
+        moveBlocks(nextVector, leftIndex + 1, rightIndex - 1)
 
   val movedVector = moveBlocks(input, 0, input.length - 1)
 
-  var position = 0L
-  var checksum = 0L
-  for(i <- movedVector.indices)
-    checksum =
-      movedVector(i) match
-        case File(id) => checksum + (position * id)
-        case FreeSpace() => checksum
-    position = position + 1
+  def checksumFolder(acc: Long, nextIndex: Int): Long =
+    movedVector(nextIndex) match
+      case File(id) => acc + (nextIndex * id)
+      case FreeSpace() => acc
 
-  checksum
+  movedVector
+    .indices
+    .foldLeft(0L)(checksumFolder)
+
 
 def Part2(input: Vector[DiskMapSpace]): Int = {
 
-  def generateFreespaceMap(freespaceMap: Map[Int, Heap[Int]]): Map[Int, Heap[Int]]  = {
+  def generateFreespaceMap(freespaceMap: Map[Int, Heap[Int]]): Map[Int, Heap[Int]]  =
 
     val initialMap: Map[Int, Heap[Int]] =
       (1 to 9)
         .foldLeft(Map.empty)((acc, next) => acc + (next -> Heap.empty))
 
-    def processFreespace()
-
     ???
-  }
+
 
   ???
 }
