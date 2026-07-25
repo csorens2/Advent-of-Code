@@ -3,7 +3,6 @@ package Day9
 import scala.annotation.tailrec
 import scala.io.Source
 import cats.collections.Heap
-import cats.Order
 
 import DiskMapSpace.File
 import DiskMapSpace.FreeSpace
@@ -48,6 +47,17 @@ def ParseFile(fileName: String): Vector[DiskMapSpace] =
 
   buildDiskMapArray(baseList, true, 0, List.empty)
 
+def CalculateChecksum(diskMap: Vector[DiskMapSpace]): Long =
+
+  val checksumFolder = (acc: Long, nextIndex: Int) =>
+    diskMap(nextIndex) match
+      case File(id) => acc + (nextIndex * id)
+      case FreeSpace() => acc
+
+  diskMap
+    .indices
+    .foldLeft(0L)(checksumFolder)
+
 def Part1(input: Vector[DiskMapSpace]): Long =
 
   @tailrec
@@ -68,29 +78,103 @@ def Part1(input: Vector[DiskMapSpace]): Long =
 
   val movedVector = moveBlocks(input, 0, input.length - 1)
 
-  def checksumFolder(acc: Long, nextIndex: Int): Long =
-    movedVector(nextIndex) match
-      case File(id) => acc + (nextIndex * id)
-      case FreeSpace() => acc
+  CalculateChecksum(movedVector)
 
-  movedVector
-    .indices
-    .foldLeft(0L)(checksumFolder)
+def Part2(input: Vector[DiskMapSpace]): Long =
 
+  @tailrec
+  def buildFreeSpaceMap(freeSpaceMap: Map[Int, Heap[Int]], currIndex: Int): Map[Int, Heap[Int]] =
+    if input.length <= currIndex then
+      freeSpaceMap
+    else
+      if input(currIndex).isInstanceOf[File] then
+          buildFreeSpaceMap(freeSpaceMap, currIndex + 1)
+      else
 
-def Part2(input: Vector[DiskMapSpace]): Int = {
+        def countFreespace(freeSpaceIndex: Int): Int =
+          if freeSpaceIndex == input.length then
+            0
+          else if input(freeSpaceIndex).isInstanceOf[File] then
+            0
+          else
+            1 + countFreespace(freeSpaceIndex + 1)
 
-  def generateFreespaceMap(freespaceMap: Map[Int, Heap[Int]]): Map[Int, Heap[Int]]  =
+        val freeSpaceLength = countFreespace(currIndex)
 
-    val initialMap: Map[Int, Heap[Int]] =
-      (1 to 9)
-        .foldLeft(Map.empty)((acc, next) => acc + (next -> Heap.empty))
+        val nextMap =
+          val heapToUpdate =
+            freeSpaceMap.get(freeSpaceLength) match
+              case Some(prevHeap) => prevHeap
+              case None => Heap.empty
+          freeSpaceMap + (freeSpaceLength -> heapToUpdate.add(currIndex))
+        buildFreeSpaceMap(nextMap, currIndex + freeSpaceLength)
 
-    ???
+  @tailrec
+  def processFiles(currVector: Vector[DiskMapSpace], currFreeSpaceMap: Map[Int, Heap[Int]], currIndex: Int): Vector[DiskMapSpace] =
+    if currIndex <= 0 then
+      currVector
+    else
+      currVector(currIndex) match
+        case FreeSpace() => processFiles(currVector, currFreeSpaceMap, currIndex - 1)
+        case File(currID) =>
+          def countFileSpace(countIndex: Int): Int =
+            if countIndex < 0 then
+              0
+            else
+              currVector(countIndex) match
+                case FreeSpace() => 0
+                case File(countID) if currID != countID => 0
+                case File(_) => 1 + countFileSpace(countIndex - 1)
 
+          val fileSpace = countFileSpace(currIndex)
 
-  ???
-}
+          val possibleFreeSpaceLengths =
+            currFreeSpaceMap
+              .keys
+              .filter(freeSpaceSize => fileSpace <= freeSpaceSize)
+
+          if possibleFreeSpaceLengths.isEmpty then
+            processFiles(currVector, currFreeSpaceMap, currIndex - fileSpace)
+          else
+            val possibleLeftMost =
+              possibleFreeSpaceLengths
+                .map(length => (currFreeSpaceMap(length).getMin.get, length))
+                .filter((pos, _) => pos < currIndex)
+                .toList
+                .sortBy((pos, _) => pos)
+                .headOption
+            if possibleLeftMost.isEmpty then
+              processFiles(currVector, currFreeSpaceMap, currIndex - fileSpace)
+            else
+              val (leftMostSpace, leftMostLength) = possibleLeftMost.get
+
+              val foldVector = (acc: Vector[DiskMapSpace], nextStep: Int) =>
+                acc
+                  .updated(leftMostSpace + nextStep, currVector(currIndex - nextStep))
+                  .updated(currIndex - nextStep, currVector(leftMostSpace + nextStep))
+
+              val nextVector = (0 until fileSpace).foldLeft(currVector)(foldVector)
+
+              val nextFreeSpaceMap =
+                val heapWithLeftMostSpaceRemoved =
+                  val (_, toReturn) = currFreeSpaceMap(leftMostLength).pop.get
+                  toReturn
+
+                val mapWithFreeSpaceRemoved =
+                  if heapWithLeftMostSpaceRemoved.size == 0 then
+                    currFreeSpaceMap.removed(leftMostLength)
+                  else
+                    currFreeSpaceMap + (leftMostLength -> heapWithLeftMostSpaceRemoved)
+
+                if fileSpace == leftMostLength then
+                  mapWithFreeSpaceRemoved
+                else
+                  val updatedHeap = currFreeSpaceMap(leftMostLength - fileSpace).add(leftMostSpace + fileSpace)
+                  mapWithFreeSpaceRemoved + ((leftMostLength - fileSpace) -> updatedHeap)
+
+              processFiles(nextVector, nextFreeSpaceMap, currIndex - fileSpace)
+
+  CalculateChecksum(processFiles(input, buildFreeSpaceMap(Map.empty, 0), input.length - 1))
 
 // Old Part 1
 /*

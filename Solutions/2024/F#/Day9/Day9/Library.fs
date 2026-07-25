@@ -81,13 +81,13 @@ let Part2 (input: PersistentVector<DiskMapSpace>) =
             if input[currIndex].IsFile then 
                 buildFreespaceMap freespaceMap (currIndex + 1)
             else
-                let rec countFreespace currIndex = 
-                    if currIndex = input.Length then 
+                let rec countFreespace freespaceIndex = 
+                    if freespaceIndex = input.Length then 
                         0
-                    else if input[currIndex].IsFile then 
+                    else if input[freespaceIndex].IsFile then 
                         0
                     else
-                        1 + countFreespace (currIndex + 1)
+                        1 + countFreespace (freespaceIndex + 1)
                 let freeSpaceLength = countFreespace currIndex
 
                 let nextMap = 
@@ -141,9 +141,7 @@ let Part2 (input: PersistentVector<DiskMapSpace>) =
                             |> PersistentVector.update (leftMostSpace + nextStep) (currVector[currIndex - nextStep])
                             |> PersistentVector.update (currIndex - nextStep) (currVector[leftMostSpace + nextStep])
 
-                        let nextVector = 
-                            [0..(fileSpace-1)]
-                            |> List.fold foldVector currVector
+                        let nextVector = List.fold foldVector currVector [0..(fileSpace-1)]
 
                         let nextFreespaceMap = 
                             let heapWithLeftMostSpaceRemoved =
@@ -159,7 +157,8 @@ let Part2 (input: PersistentVector<DiskMapSpace>) =
                             if fileSpace = leftMostLength then 
                                 mapWithFreespaceRemoved
                             else // If the file doesn't fit completely in the free space, we need to add the remaining free space back to the freespace map
-                                Map.add (leftMostLength - fileSpace) (currFreespaceMap[leftMostLength - fileSpace].Insert (leftMostSpace + fileSpace)) mapWithFreespaceRemoved
+                                let updatedHeap = currFreespaceMap[leftMostLength - fileSpace].Insert (leftMostSpace + fileSpace)
+                                Map.add (leftMostLength - fileSpace) updatedHeap mapWithFreespaceRemoved
 
                         processFiles nextVector nextFreespaceMap (currIndex - fileSpace)
     
