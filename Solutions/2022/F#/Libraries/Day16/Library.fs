@@ -2,88 +2,125 @@
 
 open System.IO
 open System.Text.RegularExpressions
-open System.Collections.Immutable
 
 type Valve = {
-    Name: string
     FlowRate: int
-    Connections: string list
+    Connections: int list
 }
 
 let ParseInput filepath = 
+    
     let parseLine line = 
         let lineRegex = Regex("""Valve (.+) has flow rate=(\d+); tunnel[s]? lead[s]? to valve[s]? (.+)""")
         let lineMatch = lineRegex.Match line
-        {
-            Valve.Name = lineMatch.Groups[1].Value; 
-            FlowRate = (int lineMatch.Groups[2].Value); 
-            Connections = Array.toList (lineMatch.Groups[3].Value.Replace(" ", "").Split(','))
-        }
+        (
+            lineMatch.Groups[1].Value,
+            (int lineMatch.Groups[2].Value),
+            Array.toList (lineMatch.Groups[3].Value.Replace(" ", "").Split(','))
+        )
 
-    File.ReadLines(filepath)
-    |> Seq.map parseLine
-    |> Seq.map (fun valve -> (valve.Name, valve))
+    let parsedLines = 
+        File.ReadLines(filepath)
+        |> Seq.map parseLine
+
+    let valveNameToNumMap = 
+        parsedLines
+        |> Seq.map (fun (name, _, _) -> name)
+        |> Seq.sort
+        |> Seq.indexed
+        |> Seq.map (fun (num, name) -> (name, num))
+        |> Map.ofSeq
+        
+    parsedLines
+    |> Seq.map (fun (name, flow, connections) -> 
+        (
+            valveNameToNumMap[name],
+            {
+                Valve.FlowRate = flow;
+                Connections = List.map (fun connection -> valveNameToNumMap[connection]) connections
+            }
+        ))
     |> Map.ofSeq
 
-let Part1 input = 
+let GeneratePathsAndFlow input time = 
     
-    let rec getDistance (bfsQueue: ImmutableQueue<string * Set<string> * int>) target = 
-        if bfsQueue.IsEmpty then 
-            -1
-        else
-            let (nextCurr, nextVisited, nextSteps) = bfsQueue.Peek()
-            let poppedQueue = bfsQueue.Dequeue()
+    let startNode = 0
 
-            if nextCurr = target then 
-                nextSteps
-            else
-                let nextQueue = 
-                    (Map.find nextCurr input).Connections
-                    |> List.filter (fun possibleNext -> not (Set.contains possibleNext nextVisited))
-                    |> List.fold (fun (acc:ImmutableQueue<string * Set<string> * int>) nextValve -> acc.Enqueue((nextValve, Set.add nextValve nextVisited, nextSteps + 1))) poppedQueue
-            
-                getDistance nextQueue target
+    let matrixLength = (Seq.length (Map.keys input))
 
-    let distanceMap = 
-        [
-            for source in input.Keys do
-                let subMap = 
-                    [
-                        for destination in input.Keys do
-                            if source <> destination && input[destination].FlowRate <> 0 then 
-                                yield (destination, getDistance (ImmutableQueue.Empty.Enqueue((source, Set.add source Set.empty, 0))) destination)
-                    ]
-                    |> Map.ofList
-                if source = "AA" || (Map.find source input).FlowRate <> 0 then 
-                    yield (source, subMap)
-        ]
-        |> Map.ofList
+    let maxValue = System.Int32.MaxValue
 
-    let rec findMaxFlow curr openedValves currFlow remainingTime = 
+    let distanceMatrix = 
+        Array.init matrixLength (fun y -> 
+            Array.init matrixLength (fun x -> 
+                if y = x then 
+                    0
+                else if (Map.containsKey y input) && (List.contains x input[y].Connections) then 
+                    1
+                else 
+                    maxValue
+            )
+        )
+
+    for intermediate in [0..matrixLength-1] do 
+        for source in [0..matrixLength-1] do
+            for destination in [0..matrixLength-1] do 
+                if distanceMatrix[source][intermediate] <> maxValue && distanceMatrix[intermediate][destination] <> maxValue then 
+                    distanceMatrix[source][destination] <- min (distanceMatrix[source][destination]) (distanceMatrix[source][intermediate] + distanceMatrix[intermediate][destination])
+    
+    let relevantNums = 
+        input
+        |> Map.toList
+        |> List.filter (fun (num, valve) -> valve.FlowRate <> 0 || num = startNode)
+        |> List.map (fun (num, _) -> num)
+
+    let rec findPathsAndFlow curr openedValves currFlow totalFlow remainingTime = 
         if remainingTime = 0 then 
-            0
+            [(openedValves, totalFlow)]
         else
             if not (Set.contains curr openedValves) then 
-                currFlow + findMaxFlow curr (Set.add curr openedValves) (currFlow + (Map.find curr input).FlowRate) (remainingTime - 1)
+                findPathsAndFlow curr (Set.add curr openedValves) (currFlow + (Map.find curr input).FlowRate) (totalFlow + currFlow) (remainingTime - 1)
             else
                 let mapValves nextPossibleValve = 
-                    let travelTime = distanceMap[curr][nextPossibleValve]
-                    (currFlow * travelTime) + findMaxFlow nextPossibleValve openedValves currFlow (remainingTime - travelTime)
+                    let travelTime = distanceMatrix[curr][nextPossibleValve]
+                    findPathsAndFlow nextPossibleValve openedValves currFlow (totalFlow + (currFlow * travelTime)) (remainingTime - travelTime)
+                
+                relevantNums
+                |> List.filter (fun nextPossibleValve -> not (Set.contains nextPossibleValve openedValves))
+                |> List.filter (fun nextPossibleValve -> distanceMatrix[curr][nextPossibleValve] < remainingTime)
+                |> List.collect mapValves
+                |> List.append [(openedValves, totalFlow + (currFlow * remainingTime))]
+                
+    findPathsAndFlow startNode (Set.add startNode Set.empty) 0 0 time
+    |> List.sortBy (fun (_, flow) -> flow)
+    |> List.fold (fun acc (nextSet, nextFlow) -> Map.add nextSet nextFlow acc) Map.empty
 
-                distanceMap[curr]
-                |> Map.keys
-                |> Seq.filter (fun nextPossibleValve -> not (Set.contains nextPossibleValve openedValves))
-                |> Seq.filter (fun nextPossibleValve -> distanceMap[curr][nextPossibleValve] < remainingTime)
-                |> Seq.map mapValves
-                |> Seq.append (Seq.singleton (currFlow * remainingTime))
-                |> Seq.max
+
+let Part1 input = 
+    let (_, maxFlow) = 
+        GeneratePathsAndFlow input 30
+        |> Map.toList
+        |> List.sortByDescending (fun (_, flow) -> flow)
+        |> List.head
+
+    maxFlow
     
 
-
-    findMaxFlow "AA" (Set.add "AA" Set.empty) 0 30
-
-
-
-
 let Part2 input = 
-    0
+    let pathsAndFlow = 
+        GeneratePathsAndFlow input 26
+        |> Map.toList
+        |> List.sortByDescending (fun (_,flow) -> flow)
+
+    let pathCombos = seq {
+        for (setA, flowA) in pathsAndFlow do 
+            let setAFixed = Set.remove 0 setA
+            for (setB, flowB) in pathsAndFlow do 
+                let setBFixed = Set.remove 0 setB
+                if Set.isEmpty (Set.intersect setAFixed setBFixed)  then 
+                    yield flowA + flowB
+    }
+
+    pathCombos
+    |> Seq.sortDescending
+    |> Seq.head
