@@ -67,7 +67,13 @@ def Part1(input: Vector[Machine]): Int =
 
 def Part2(input: Vector[Machine]): Int =
   def ProcessMachine(toProcess: Machine): Int =
+
     val finalVoltages = Vector.fill(toProcess.Voltage.length)(0)
+    val voltageToButtonsMap =
+      toProcess.Voltage.indices
+        .map(voltage => (voltage, toProcess.Buttons.filter(button => button.contains(voltage))))
+        .toMap
+
     def DFSButtonPresses(remainingVoltages: Vector[Int], remainingVoltageChoices: Set[Int], numPresses: Int): Int =
       if remainingVoltageChoices.isEmpty then
           if remainingVoltages == finalVoltages then
@@ -75,20 +81,13 @@ def Part2(input: Vector[Machine]): Int =
           else
             throw Exception("Reached base case with non-final voltages")
       else
-        def CountButtonsInfluencingGivenVoltage(voltageChoice: Int): Int =
-          toProcess
-            .Buttons
-            .count(buttonVoltages => buttonVoltages.contains(voltageChoice))
 
-        val chosenVoltage = remainingVoltageChoices.minBy(CountButtonsInfluencingGivenVoltage)
+        val chosenVoltage = remainingVoltageChoices.toList.minBy(voltageChoice => voltageToButtonsMap(voltageChoice).size)
 
         if remainingVoltages(chosenVoltage) == 0 then
           DFSButtonPresses(remainingVoltages, remainingVoltageChoices - chosenVoltage, numPresses)
         else
-          val voltageButtons =
-            toProcess
-              .Buttons
-              .filter(buttonVoltages => buttonVoltages.contains(chosenVoltage))
+          val voltageButtons = voltageToButtonsMap(chosenVoltage)
 
           def getZeroedVoltages(remainingButtons: Set[Vector[Int]], currVoltages: Vector[Int]): List[Vector[Int]] =
             def pressButtonMulti(button: Vector[Int], voltage: Vector[Int], presses: Int): Vector[Int] =
