@@ -1,13 +1,12 @@
 package Day10
 
 import optimus.algebra.*
-
+import optimus.optimization.*
+import optimus.optimization.enums.SolverLib
+import optimus.optimization.model.MPIntVar
 import scala.annotation.tailrec
 import scala.collection.immutable.Queue
 import scala.io.Source
-import optimus.optimization.*
-import optimus.optimization.enums.SolverLib
-import optimus.optimization.model._
 
 case class Machine(Lights: Vector[Boolean], Buttons: Vector[Vector[Int]], Voltage: Vector[Int])
 
@@ -71,29 +70,6 @@ def Part1(input: Vector[Machine]): Int =
     .sum
 
 def Part2(input: Vector[Machine]): Int =
-  def ProcessMachineBASE(toProcess: Machine): Int =
-    implicit val model: MPModel = MPModel(SolverLib.oJSolver)
-
-    val a = MPFloatVar("a", 0, INFINITE)
-    val b = MPFloatVar("b", 0, INFINITE)
-    val c = MPFloatVar("c", 0, INFINITE)
-    val d = MPFloatVar("d", 0, INFINITE)
-    val e = MPFloatVar("e", 0, INFINITE)
-    val f = MPFloatVar("f", 0, INFINITE)
-
-    minimize(a + b + c + d + e + f)
-
-    add(3 := e + f)
-    add(5 := b + f)
-    add(4 := c + d + e)
-    add(7 := a + b + d)
-
-
-    start()
-    println(s"objective: $objectiveValue")
-    release()
-
-    ???
 
   def ProcessMachine(toProcess: Machine): Int =
     implicit val model: MPModel = MPModel(SolverLib.oJSolver)
@@ -103,23 +79,25 @@ def Part2(input: Vector[Machine]): Int =
       else
         ('a' + num % 26).toChar.toString + NumToVariable(num - 26)
 
-    val buttonToFloatVar =
+    val largestVoltage = toProcess.Voltage.max
+
+    val buttonToIntVar =
       toProcess
         .Buttons
         .indices
-        .map(buttonIndex => (NumToVariable(buttonIndex), MPFloatVar(NumToVariable(buttonIndex), 0, INFINITE)))
+        .map(buttonIndex => (NumToVariable(buttonIndex), MPIntVar(NumToVariable(buttonIndex), 0 to largestVoltage)))
         .toMap
 
-    def FoldVoltageButtons(mapAcc: Map[Int, List[MPFloatVar]], nextButton: (String, Vector[Int])): Map[Int, List[MPFloatVar]] =
+    def FoldVoltageButtons(mapAcc: Map[Int, List[MPIntVar]], nextButton: (String, Vector[Int])): Map[Int, List[MPIntVar]] =
       val (nextButtonName, nextButtonVoltages) = nextButton
-      val nextFloatVar = buttonToFloatVar(nextButtonName)
+      val nextIntVar = buttonToIntVar(nextButtonName)
       nextButtonVoltages
         .foldLeft(mapAcc)((nextAcc, nextVoltage) =>
           nextAcc.get(nextVoltage) match
-            case Some(prevButtons) => nextAcc + (nextVoltage -> (nextFloatVar :: prevButtons))
-            case None => nextAcc + (nextVoltage -> List(nextFloatVar)))
+            case Some(prevButtons) => nextAcc + (nextVoltage -> (nextIntVar :: prevButtons))
+            case None => nextAcc + (nextVoltage -> List(nextIntVar)))
 
-    val voltageButtons: Map[Int, List[MPFloatVar]] =
+    val voltageButtons: Map[Int, List[MPIntVar]] =
       toProcess
         .Buttons
         .zipWithIndex
@@ -128,7 +106,7 @@ def Part2(input: Vector[Machine]): Int =
 
     val emptyExpression: Expression = Zero
     val minimizeExpression =
-      buttonToFloatVar
+      buttonToIntVar
         .values
         .foldLeft(emptyExpression)((acc, next) => acc + next)
 
@@ -136,16 +114,15 @@ def Part2(input: Vector[Machine]): Int =
 
     for(voltageButton <- voltageButtons)
       val (voltage, variables) = voltageButton
-      val addExpression =
-        variables
-          .foldLeft(emptyExpression)((acc, next) => acc + next)
+      val addExpression = variables.foldLeft(emptyExpression)((acc, next) => acc + next)
       add(toProcess.Voltage(voltage) := addExpression)
 
     start()
-    val toReturn = objectiveValue.toInt
+    val toReturn = math.round(objectiveValue).toInt
     release()
     toReturn
 
   input
     .map(ProcessMachine)
     .sum
+
