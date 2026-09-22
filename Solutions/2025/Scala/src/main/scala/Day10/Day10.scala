@@ -1,8 +1,13 @@
 package Day10
 
+import optimus.algebra.*
+
 import scala.annotation.tailrec
 import scala.collection.immutable.Queue
 import scala.io.Source
+import optimus.optimization.*
+import optimus.optimization.enums.SolverLib
+import optimus.optimization.model._
 
 case class Machine(Lights: Vector[Boolean], Buttons: Vector[Vector[Int]], Voltage: Vector[Int])
 
@@ -66,75 +71,81 @@ def Part1(input: Vector[Machine]): Int =
     .sum
 
 def Part2(input: Vector[Machine]): Int =
-  def ProcessMachine(toProcess: Machine): Int =
+  def ProcessMachineBASE(toProcess: Machine): Int =
+    implicit val model: MPModel = MPModel(SolverLib.oJSolver)
 
-    val finalVoltages = Vector.fill(toProcess.Voltage.length)(0)
-    val voltageToButtonsMap =
-      toProcess.Voltage.indices
-        .map(voltage => (voltage, toProcess.Buttons.filter(button => button.contains(voltage))))
+    val a = MPFloatVar("a", 0, INFINITE)
+    val b = MPFloatVar("b", 0, INFINITE)
+    val c = MPFloatVar("c", 0, INFINITE)
+    val d = MPFloatVar("d", 0, INFINITE)
+    val e = MPFloatVar("e", 0, INFINITE)
+    val f = MPFloatVar("f", 0, INFINITE)
+
+    minimize(a + b + c + d + e + f)
+
+    add(3 := e + f)
+    add(5 := b + f)
+    add(4 := c + d + e)
+    add(7 := a + b + d)
+
+
+    start()
+    println(s"objective: $objectiveValue")
+    release()
+
+    ???
+
+  def ProcessMachine(toProcess: Machine): Int =
+    implicit val model: MPModel = MPModel(SolverLib.oJSolver)
+    def NumToVariable(num: Int): String =
+      if num < 26 then
+        ('a' + num).toChar.toString
+      else
+        ('a' + num % 26).toChar.toString + NumToVariable(num - 26)
+
+    val buttonToFloatVar =
+      toProcess
+        .Buttons
+        .indices
+        .map(buttonIndex => (NumToVariable(buttonIndex), MPFloatVar(NumToVariable(buttonIndex), 0, INFINITE)))
         .toMap
 
-    def DFSButtonPresses(remainingVoltages: Vector[Int], remainingVoltageChoices: Set[Int], numPresses: Int): Int =
-      if remainingVoltageChoices.isEmpty then
-          if remainingVoltages == finalVoltages then
-            numPresses
-          else
-            throw Exception("Reached base case with non-final voltages")
-      else
+    def FoldVoltageButtons(mapAcc: Map[Int, List[MPFloatVar]], nextButton: (String, Vector[Int])): Map[Int, List[MPFloatVar]] =
+      val (nextButtonName, nextButtonVoltages) = nextButton
+      val nextFloatVar = buttonToFloatVar(nextButtonName)
+      nextButtonVoltages
+        .foldLeft(mapAcc)((nextAcc, nextVoltage) =>
+          nextAcc.get(nextVoltage) match
+            case Some(prevButtons) => nextAcc + (nextVoltage -> (nextFloatVar :: prevButtons))
+            case None => nextAcc + (nextVoltage -> List(nextFloatVar)))
 
-        val chosenVoltage = remainingVoltageChoices.toList.minBy(voltageChoice => voltageToButtonsMap(voltageChoice).size)
+    val voltageButtons: Map[Int, List[MPFloatVar]] =
+      toProcess
+        .Buttons
+        .zipWithIndex
+        .map((button, index) => (NumToVariable(index), button))
+        .foldLeft(Map.empty)(FoldVoltageButtons)
 
-        if remainingVoltages(chosenVoltage) == 0 then
-          DFSButtonPresses(remainingVoltages, remainingVoltageChoices - chosenVoltage, numPresses)
-        else
-          val voltageButtons = voltageToButtonsMap(chosenVoltage)
+    val emptyExpression: Expression = Zero
+    val minimizeExpression =
+      buttonToFloatVar
+        .values
+        .foldLeft(emptyExpression)((acc, next) => acc + next)
 
-          def getZeroedVoltages(remainingButtons: Set[Vector[Int]], currVoltages: Vector[Int]): List[Vector[Int]] =
-            def pressButtonMulti(button: Vector[Int], voltage: Vector[Int], presses: Int): Vector[Int] =
-              button
-                .foldLeft(voltage)((voltageAcc, nextVoltage) =>
-                  val remainingVoltage = voltageAcc(nextVoltage)
-                  if remainingVoltage < presses then
-                    throw Exception("Reducing voltage past 0")
-                  else
-                    voltageAcc.updated(nextVoltage, remainingVoltage - presses))
+    minimize(minimizeExpression)
 
-            def countMaxButtonPresses(button: Vector[Int], voltages: Vector[Int]): Int =
-              button
-                .map(buttonNum => voltages(buttonNum))
-                .min
+    for(voltageButton <- voltageButtons)
+      val (voltage, variables) = voltageButton
+      val addExpression =
+        variables
+          .foldLeft(emptyExpression)((acc, next) => acc + next)
+      add(toProcess.Voltage(voltage) := addExpression)
 
-            val remainingChosenVoltage = currVoltages(chosenVoltage)
-            if remainingButtons.size == 1 then
-              val remainingButton = remainingButtons.head
-              if countMaxButtonPresses(remainingButton, currVoltages) < remainingChosenVoltage then
-                List.empty
-              else
-                List(pressButtonMulti(remainingButton, currVoltages, remainingChosenVoltage))
-            else
-              def processButton(buttonToProcess: Vector[Int]): List[Vector[Int]] =
-                val nextMaxPresses = countMaxButtonPresses(buttonToProcess, currVoltages)
-                  Range.inclusive(0, nextMaxPresses)
-                    .toList
-                    .map(presses => pressButtonMulti(buttonToProcess, currVoltages, presses))
-                    .flatMap(nextVoltage => getZeroedVoltages(remainingButtons - buttonToProcess, nextVoltage))
-              remainingButtons
-                .flatMap(processButton)
-                .toList
+    start()
+    val toReturn = objectiveValue.toInt
+    release()
+    toReturn
 
-          val recursiveResult =
-            getZeroedVoltages(voltageButtons.toSet, remainingVoltages)
-              .distinct
-              .map(zeroedVoltage => DFSButtonPresses(zeroedVoltage,remainingVoltageChoices - chosenVoltage, numPresses + remainingVoltages(chosenVoltage)))
-          if recursiveResult.isEmpty then
-            Int.MaxValue
-          else
-            recursiveResult.min
-
-    DFSButtonPresses(toProcess.Voltage, toProcess.Voltage.indices.toSet, 0)
-
-  val test =
-    input
-      .map(ProcessMachine)
-  test
+  input
+    .map(ProcessMachine)
     .sum
