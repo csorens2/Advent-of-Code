@@ -3,6 +3,8 @@
 open System.IO
 open System.Text.RegularExpressions
 open System.Collections.Immutable
+open Flips
+open Flips.Types
 
 type Machine = {
     Lights: bool array
@@ -69,4 +71,57 @@ let Part1 input =
     Seq.sumBy processMachine input
 
 let Part2 input = 
-    0
+    
+    let processMachine toProcess = 
+        let rec numToVariable num = 
+            if num < 26 then 
+                string (char ((int 'a') + num))
+            else
+                (string (char ((int 'a') + num))) + numToVariable (num - 26)
+        
+        let largestVoltage = Array.max toProcess.Voltage
+
+        let buttonToDecision = 
+            [0..(Array.length toProcess.Buttons) - 1]
+            |> List.map (
+                fun buttonIndex -> 
+                    (
+                        numToVariable buttonIndex, 
+                        Decision.createContinuous (numToVariable buttonIndex) 0.0 infinity)
+                    )
+            |> Map.ofList
+        
+        let foldVoltageButtons mapAcc (nextButtonName, nextButtonVoltages) =
+            let nextDecision = buttonToDecision[nextButtonName]
+            nextButtonVoltages
+            |> Array.fold 
+                (fun nextAcc nextVoltage -> 
+                    match Map.tryFind nextVoltage nextAcc with 
+                    | Some(prevButtons) -> Map.add nextVoltage (nextDecision :: prevButtons) nextAcc
+                    | None -> Map.add nextVoltage [nextDecision] nextAcc)
+                mapAcc
+
+        let voltageButtons = 
+            toProcess.Buttons
+            |> Array.indexed
+            |> Array.map (fun (index,button) -> (numToVariable index, button))
+            |> Array.fold foldVoltageButtons Map.empty
+
+        let minimizeExpression = 
+            buttonToDecision
+            |> Map.values
+            |> Seq.fold (fun acc next -> acc + next) LinearExpression.Empty 
+
+        let objective = Objective.create "Minimize Button Pushes" Minimize minimizeExpression
+
+        let foldModel (acc: Model.Model) (voltage, decisions) =
+            let addConstraint = List.fold (fun acc next -> acc + next) LinearExpression.Empty decisions
+            Model.addConstraint (Constraint.create  ) acc
+            
+
+        let model = Model.create objective
+        
+        0
+    
+    
+    Seq.sumBy processMachine input
