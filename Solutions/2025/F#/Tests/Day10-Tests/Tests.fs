@@ -21,5 +21,4 @@ let ``Part2 Example`` () =
 [<Fact>]
 let ``Part2 Input`` () = 
     let input = ParseInput("Input.txt")
-    //Assert.Equal(, Part2 input)
-    Assert.Fail("Not implemented")
+    Assert.Equal(16643, Part2 input)

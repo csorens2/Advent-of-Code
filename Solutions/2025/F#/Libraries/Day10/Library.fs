@@ -26,7 +26,7 @@ let ParseInput filepath =
             |> Seq.toArray
         let buttons = 
             lineMatch.Groups[2].Value.Split(' ')
-            |> Seq.map (mapButtonsAndVoltages)
+            |> Seq.map mapButtonsAndVoltages
             |> Seq.toArray
         let voltage = mapButtonsAndVoltages lineMatch.Groups[3].Value
         {Machine.Lights = lights; Buttons = buttons; Voltage = voltage}
@@ -77,9 +77,7 @@ let Part2 input =
             if num < 26 then 
                 string (char ((int 'a') + num))
             else
-                (string (char ((int 'a') + num))) + numToVariable (num - 26)
-        
-        let largestVoltage = Array.max toProcess.Voltage
+                (string (char (((int 'a') + num) % 26))) + numToVariable (num - 26)
 
         let buttonToDecision = 
             [0..(Array.length toProcess.Buttons) - 1]
@@ -87,7 +85,7 @@ let Part2 input =
                 fun buttonIndex -> 
                     (
                         numToVariable buttonIndex, 
-                        Decision.createContinuous (numToVariable buttonIndex) 0.0 infinity)
+                        Decision.createInteger (numToVariable buttonIndex) 0.0 infinity)
                     )
             |> Map.ofList
         
@@ -107,21 +105,25 @@ let Part2 input =
             |> Array.map (fun (index,button) -> (numToVariable index, button))
             |> Array.fold foldVoltageButtons Map.empty
 
-        let minimizeExpression = 
-            buttonToDecision
-            |> Map.values
-            |> Seq.fold (fun acc next -> acc + next) LinearExpression.Empty 
+        let minimizeExpression = Seq.fold (fun acc next -> acc + next) LinearExpression.Empty (Map.values buttonToDecision)
 
         let objective = Objective.create "Minimize Button Pushes" Minimize minimizeExpression
 
-        let foldModel (acc: Model.Model) (voltage, decisions) =
-            let addConstraint = List.fold (fun acc next -> acc + next) LinearExpression.Empty decisions
-            Model.addConstraint (Constraint.create  ) acc
-            
+        let foldModel acc (voltage, decisions) =
+            let addConstraint = List.fold (fun expressionAcc nextDecision -> expressionAcc + nextDecision) LinearExpression.Empty decisions
+            Model.addConstraint (Constraint.create ("Voltage-" + voltage.ToString()) ((float (toProcess.Voltage[voltage])) == addConstraint)) acc
 
-        let model = Model.create objective
-        
-        0
+        let model = Array.fold foldModel (Model.create objective) (Map.toArray voltageButtons)
+
+        let settings = Settings.setSolverType SolverType.GLOP Settings.basic
+
+        let result = Solver.solve settings model
+
+        match result with 
+        | Optimal solution -> int (round (Objective.evaluate solution objective))
+        | Infeasible output ->  failwith output
+        | Unbounded output -> failwith output
+        | Unknown output -> failwith output
     
     
     Seq.sumBy processMachine input
